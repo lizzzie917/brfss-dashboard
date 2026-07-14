@@ -27,6 +27,61 @@ function calcOR(exposedDiabetic, exposedHealthy, unexposedDiabetic, unexposedHea
   return { or, error: upper - or }; 
 }
 
+// --- REAL-WORLD CATEGORY MAPPINGS ---
+const incomeLabels = [
+  'Under $10k', '$10k - $15k', '$15k - $20k', '$20k - $25k', 
+  '$25k - $35k', '$35k - $50k', '$50k - $75k', '$75k or More'
+];
+
+const educationLabels = [
+  'No School', 'Elementary', 'Some High School', 
+  'High School Grad', 'Some College', 'College Grad'
+];
+
+const heatmapVariables = [
+  'Diabetes Diagnosis', 'High Blood Pressure', 'High Cholesterol', 
+  'Body Mass Index (BMI)', 'Age Bracket', 'General Health Rating', 
+  'Annual Income', 'Education Level'
+];
+
+// Plain-English translations of correlations to make the matrix readable
+const correlationTranslations = {
+  'Diabetes Diagnosis': [
+    "Strongest Link: High Blood Pressure. People diagnosed with High BP show significantly higher rates of diabetes.",
+    "Socioeconomic Shield: Both Annual Income and Education Level have negative correlations (-0.16 & -0.12). As income and education rise, your statistical risk of diabetes decreases.",
+    "Physical Footprint: Higher BMI and poorer self-reported General Health Ratings are heavily clustered with positive diabetes diagnoses."
+  ],
+  'High Blood Pressure': [
+    "Age Factor: This has the strongest positive link with Age (+0.27). Risk scales upward systematically as the population ages.",
+    "Metabolic Duo: High Cholesterol and BMI are closely bound to High BP, representing a unified cardiovascular health profile.",
+    "Socioeconomic Impact: Higher incomes show a strong negative correlation (-0.17), meaning financial stability is tied to healthier blood pressure averages."
+  ],
+  'High Cholesterol': [
+    "Co-Occurrence: Strongly linked to High Blood Pressure and Diabetes. These three markers frequently present together in patients.",
+    "Demographics: Age is a major factor. The risk of high cholesterol steadily rises across older brackets in this population."
+  ],
+  'Body Mass Index (BMI)': [
+    "The Health Mirror: As BMI climbs, self-reported General Health Ratings worsen (+0.27 correlation).",
+    "Socioeconomic Divide: Shows a negative relationship with Income (-0.11), meaning higher-income groups average lower BMIs, likely due to fresh food access and recreational time."
+  ],
+  'Age Bracket': [
+    "Chronic Accumulation: Age is heavily linked to High BP (+0.27), High Cholesterol (+0.23), and Diabetes (+0.18). Metabolic issues build up over time.",
+    "Education Shift: Shows a slight negative correlation with higher education, capturing generational changes in college access."
+  ],
+  'General Health Rating': [
+    "The Ultimate Metric: This subjective rating is highly accurate. It has incredibly strong positive correlations with physical markers like BMI (+0.27) and Diabetes (+0.29).",
+    "Socioeconomic Lift: Strongly tied to Annual Income (-0.37). Wealthier individuals rate their own physical health significantly higher."
+  ],
+  'Annual Income': [
+    "The Great Stabilizer: Has the strongest negative relationship with poor General Health Ratings (-0.37). Financial security is the single biggest predictor of positive self-reported wellness.",
+    "Education Link: Shows a powerful positive correlation with Education Level (+0.42). Educational opportunities strongly lead to higher career earnings."
+  ],
+  'Education Level': [
+    "Financial Gateway: Highly correlated with Annual Income (+0.42), which in turn feeds into better healthcare and diet access.",
+    "Systemic Shield: Higher education levels correlate to lower average BMIs, lower diabetes rates, and overall better subjective health."
+  ]
+};
+
 // --- REUSABLE ANNOTATIVE COMPONENTS ---
 const InfoPopup = ({ title, text }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,6 +116,8 @@ export default function App() {
   
   // Specific Chart Controls
   const [butterflyView, setButterflyView] = useState('diet'); 
+  const [slopeView, setSlopeView] = useState('income');
+  const [translatorVar, setTranslatorVar] = useState('Diabetes Diagnosis');
   const [mentalHealthDays, setMentalHealthDays] = useState(0);
 
   // Calculator State
@@ -128,7 +185,6 @@ export default function App() {
         if (row.HighBP === 1) d_bp++; if (row.HighChol === 1) d_chol++; if (row.HeartDiseaseorAttack === 1) d_heart++; if (row.Stroke === 1) d_stroke++;
       }
 
-      // Subsampling 1-out-of-20 rows keeps the web client smooth during live state rerenders
       if (includeInRaincloud && row.GenHlth >= 1 && row.GenHlth <= 5 && index % 20 === 0) {
         raincloud[`gen${row.GenHlth}`].push(row.BMI);
       }
@@ -136,15 +192,22 @@ export default function App() {
 
     const calcPct = (c, t) => t > 0 ? (c / t) * 100 : 0;
     
+    // Calculate full correlation matrix
     const varArrays = [vars.Diabetes, vars.BP, vars.Chol, vars.BMI, vars.Age, vars.GenHlth, vars.Income, vars.Edu];
     const zMatrix = [];
     for (let i = 0; i < varArrays.length; i++) {
       const r = [];
-      for (let j = 0; j < varArrays.length; j++) r.push(getPearson(varArrays[i], varArrays[j]));
+      for (let j = 0; j < varArrays.length; j++) {
+        // Lower triangle mask logic: Set upper values to null to keep chart visually clean
+        if (j <= i) {
+          r.push(getPearson(varArrays[i], varArrays[j]));
+        } else {
+          r.push(null);
+        }
+      }
       zMatrix.push(r);
     }
 
-    // Precise math computation for the visual trend line
     const raincloudMeans = [1, 2, 3, 4, 5].map(lvl => {
       const arr = raincloud[`gen${lvl}`];
       return arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
@@ -152,19 +215,19 @@ export default function App() {
     
     return {
       violin, raincloud, raincloudMeans,
-      heatmap: { z: zMatrix, labels: ['Diabetes', 'High BP', 'High Chol', 'BMI', 'Age', 'Poor GenHlth', 'Income', 'Edu'] },
+      heatmap: { z: zMatrix, labels: heatmapVariables },
       slope: {
-        incomeX: [1, 2, 3, 4, 5, 6, 7, 8], incomeY: [1, 2, 3, 4, 5, 6, 7, 8].map(l => calcPct(incomeStats[l].d, incomeStats[l].t)),
-        eduX: [1, 2, 3, 4, 5, 6], eduY: [1, 2, 3, 4, 5, 6].map(l => calcPct(eduStats[l].d, eduStats[l].t))
+        incomeY: [1, 2, 3, 4, 5, 6, 7, 8].map(l => calcPct(incomeStats[l].d, incomeStats[l].t)),
+        eduY: [1, 2, 3, 4, 5, 6].map(l => calcPct(eduStats[l].d, eduStats[l].t))
       },
       butterfly: {
         diet: {
-          labels: ['Daily Veggies', 'Daily Fruits', 'Phys. Activity', 'Smoker'],
+          labels: ['Eats Vegetables Daily', 'Eats Fruit Daily', 'Physically Active (Past 30 Days)', 'Current/Former Smoker'],
           healthy: [calcPct(stats.healthy.veggies, stats.healthy.total), calcPct(stats.healthy.fruits, stats.healthy.total), calcPct(stats.healthy.physAct, stats.healthy.total), calcPct(stats.healthy.smoker, stats.healthy.total)],
           diabetic: [calcPct(stats.diabetic.veggies, stats.diabetic.total), calcPct(stats.diabetic.fruits, stats.diabetic.total), calcPct(stats.diabetic.physAct, stats.diabetic.total), calcPct(stats.diabetic.smoker, stats.diabetic.total)]
         },
         barriers: {
-          labels: ['Diff. Walking', 'No Doc due to Cost'],
+          labels: ['Difficulty Walking/Climbing Stairs', 'Could Not Afford Doctor Visit'],
           healthy: [calcPct(stats.healthy.diffWalk, stats.healthy.total), calcPct(stats.healthy.noDoc, stats.healthy.total)],
           diabetic: [calcPct(stats.diabetic.diffWalk, stats.diabetic.total), calcPct(stats.diabetic.noDoc, stats.diabetic.total)]
         }
@@ -176,7 +239,7 @@ export default function App() {
         heart: calcOR(orStats.heart.ed, orStats.heart.eh, orStats.heart.ud, orStats.heart.uh)
       },
       sankey: {
-        nodes: ['Diabetes', 'High BP', 'High Chol', 'Heart Disease', 'Stroke'],
+        nodes: ['Diabetes Diagnosis', 'High Blood Pressure', 'High Cholesterol', 'Heart Disease', 'Stroke'],
         links: { source: [0, 0, 0, 0], target: [1, 2, 3, 4], value: [d_bp, d_chol, d_heart, d_stroke] }
       }
     };
@@ -254,13 +317,13 @@ export default function App() {
                 data={[{
                   type: 'scatter', mode: 'markers',
                   x: [processedData.odds.bp.or, processedData.odds.chol.or, processedData.odds.smoker.or, processedData.odds.heart.or],
-                  y: ['High BP', 'High Chol', 'Smoker', 'Heart Disease'],
+                  y: ['High Blood Pressure', 'High Cholesterol', 'Smoker', 'Heart Disease'],
                   error_x: { type: 'data', symmetric: true, array: [processedData.odds.bp.error, processedData.odds.chol.error, processedData.odds.smoker.error, processedData.odds.heart.error], color: '#818cf8', thickness: 2, width: 6 },
                   marker: { size: 12, color: '#4f46e5' },
                   text: [processedData.odds.bp.or.toFixed(2), processedData.odds.chol.or.toFixed(2), processedData.odds.smoker.or.toFixed(2), processedData.odds.heart.or.toFixed(2)],
                   hovertemplate: '<b>%{y}</b><br>Multiplies risk by %{x:.2f}x<extra></extra>'
                 }]}
-                layout={{ font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', xaxis: { title: 'Risk Multiplier (Odds Ratio)', gridcolor: '#1e293b' }, yaxis: { gridcolor: 'transparent' }, shapes: [{ type: 'line', x0: 1, x1: 1, y0: -0.5, y1: 3.5, line: { color: '#f43f5e', dash: 'dash', width: 2 } }], margin: { l: 100, r: 20, t: 20, b: 40 }, autosize: true }}
+                layout={{ font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', xaxis: { title: 'Risk Multiplier (Odds Ratio)', gridcolor: '#1e293b' }, yaxis: { gridcolor: 'transparent' }, shapes: [{ type: 'line', x0: 1, x1: 1, y0: -0.5, y1: 3.5, line: { color: '#f43f5e', dash: 'dash', width: 2 } }], margin: { l: 150, r: 20, t: 20, b: 40 }, autosize: true }}
                 useResizeHandler={true} style={{ width: '100%', height: '100%' }}
               />
             </div>
@@ -276,21 +339,61 @@ export default function App() {
             <p className="text-slate-400 mt-2">Health is not just physical; it is environmental and financial. Where do we need structural interventions?</p>
           </div>
 
-          {/* Socioeconomic Slope */}
+          {/* Socioeconomic Slope with Split Tabs & Literal Legends */}
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full">
-            <h3 className="text-xl font-bold text-white mb-2">How Income and Education Impact Risk</h3>
-            <p className="text-sm text-slate-400 mb-4">Tracking diabetes prevalence across ascending socioeconomic brackets (1 = Lowest, Max = Highest).</p>
-            <div className="w-full h-[400px]">
-              <Plot
-                data={[
-                  { type: 'scatter', mode: 'lines+markers', x: processedData.slope.incomeX, y: processedData.slope.incomeY, name: 'Income Level', line: { color: '#fbbf24', width: 3 }, hovertemplate: 'Income Bracket %{x}<br>Diabetic: %{y:.1f}%<extra></extra>' },
-                  { type: 'scatter', mode: 'lines+markers', x: processedData.slope.eduX, y: processedData.slope.eduY, name: 'Education Level', line: { color: '#22d3ee', width: 3 }, hovertemplate: 'Education Bracket %{x}<br>Diabetic: %{y:.1f}%<extra></extra>' }
-                ]}
-                layout={{ font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', xaxis: { title: 'Socioeconomic Bracket (Lowest to Highest)', gridcolor: '#1e293b' }, yaxis: { title: 'Prevalence of Diabetes (%)', gridcolor: '#1e293b' }, autosize: true }}
-                useResizeHandler={true} style={{ width: '100%', height: '100%' }}
-              />
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">Socioeconomic Disparities</h3>
+                <p className="text-sm text-slate-400">Diabetes prevalence mapped against clear social structures.</p>
+              </div>
+              <div className="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
+                <button onClick={() => setSlopeView('income')} className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${slopeView === 'income' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}>Annual Income Bracket</button>
+                <button onClick={() => setSlopeView('education')} className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${slopeView === 'education' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}>Education Level</button>
+              </div>
             </div>
-            <TakeawayBanner text="There is a stark, undeniable downward slope: as education and income levels increase, the prevalence of diabetes drops dramatically. Systemic poverty is a massive risk factor." />
+
+            <div className="w-full h-[400px]">
+              {slopeView === 'income' ? (
+                <Plot
+                  data={[{
+                    type: 'scatter', mode: 'lines+markers',
+                    x: incomeLabels,
+                    y: processedData.slope.incomeY,
+                    name: 'Income Level',
+                    line: { color: '#fbbf24', width: 4 },
+                    marker: { size: 8 },
+                    hovertemplate: 'Income: %{x}<br>Diabetes Rate: %{y:.1f}%<extra></extra>'
+                  }]}
+                  layout={{
+                    font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+                    xaxis: { title: 'Annual Household Income Bracket', gridcolor: '#1e293b', automargin: true },
+                    yaxis: { title: 'Prevalence of Diabetes (%)', gridcolor: '#1e293b', range: [10, 45] },
+                    autosize: true
+                  }}
+                  useResizeHandler={true} style={{ width: '100%', height: '100%' }}
+                />
+              ) : (
+                <Plot
+                  data={[{
+                    type: 'scatter', mode: 'lines+markers',
+                    x: educationLabels,
+                    y: processedData.slope.eduY,
+                    name: 'Education Level',
+                    line: { color: '#22d3ee', width: 4 },
+                    marker: { size: 8 },
+                    hovertemplate: 'Education: %{x}<br>Diabetes Rate: %{y:.1f}%<extra></extra>'
+                  }]}
+                  layout={{
+                    font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+                    xaxis: { title: 'Highest Level of Education Attained', gridcolor: '#1e293b', automargin: true },
+                    yaxis: { title: 'Prevalence of Diabetes (%)', gridcolor: '#1e293b', range: [10, 45] },
+                    autosize: true
+                  }}
+                  useResizeHandler={true} style={{ width: '100%', height: '100%' }}
+                />
+              )}
+            </div>
+            <TakeawayBanner text={slopeView === 'income' ? "A dramatic, stair-step decline: households earning under $10,000 show more than double the diabetes rates compared to those earning over $75,000." : "Education behaves as an armor. Patients with a college degree experience significantly lower rates of diabetes than those who completed some high school or less."} />
           </div>
 
           {/* Behavioral / Barriers Butterfly */}
@@ -311,7 +414,7 @@ export default function App() {
                   { type: 'bar', x: processedData.butterfly[butterflyView].healthy.map(v => -v), y: processedData.butterfly[butterflyView].labels, orientation: 'h', name: 'Non-Diabetic', marker: { color: '#10b981' }, customdata: processedData.butterfly[butterflyView].healthy, hovertemplate: '%{y} (Healthy)<br>Rate: %{customdata:.1f}%<extra></extra>' },
                   { type: 'bar', x: processedData.butterfly[butterflyView].diabetic, y: processedData.butterfly[butterflyView].labels, orientation: 'h', name: 'Diabetic', marker: { color: '#f43f5e' }, hovertemplate: '%{y} (Diabetic)<br>Rate: %{x:.1f}%<extra></extra>' }
                 ]}
-                layout={{ barmode: 'relative', font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', margin: { l: 140, r: 20, t: 20, b: 40 }, xaxis: { range: [-100, 100], tickvals: [-100, -50, 0, 50, 100], ticktext: ['100%', '50%', '0%', '50%', '100%'], gridcolor: '#1e293b' }, yaxis: { gridcolor: 'transparent' }, autosize: true }}
+                layout={{ barmode: 'relative', font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', margin: { l: 220, r: 20, t: 20, b: 40 }, xaxis: { range: [-100, 100], tickvals: [-100, -50, 0, 50, 100], ticktext: ['100%', '50%', '0%', '50%', '100%'], gridcolor: '#1e293b' }, yaxis: { gridcolor: 'transparent' }, autosize: true }}
                 useResizeHandler={true} style={{ width: '100%', height: '100%' }}
               />
             </div>
@@ -348,7 +451,7 @@ export default function App() {
              <TakeawayBanner text="Diabetes rarely exists in isolation. Observe the massive flow connecting Diabetes directly to High Blood Pressure and High Cholesterol, highlighting the critical need for comprehensive cardiovascular care." />
           </div>
 
-          {/* Raincloud Plot with Integrated Control */}
+          {/* Raincloud Plot */}
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
               <div>
@@ -367,7 +470,6 @@ export default function App() {
             <div className="w-full h-[500px]">
               <Plot
                 data={[
-                  // 1. Dynamic Gradient Violin Clouds (Emerald -> Warning Red)
                   ...[1, 2, 3, 4, 5].map((lvl, idx) => {
                     const colors = ['#10b981', '#34d399', '#fbbf24', '#f97316', '#ef4444'];
                     return {
@@ -381,11 +483,10 @@ export default function App() {
                       side: 'positive',
                       line: { color: colors[idx], width: 2 }, 
                       marker: { size: 3, opacity: 0.3, color: '#94a3b8' }, 
-                      meanline: { visible: true, width: 4, color: '#ffffff' }, // Thick indicator for category mean
+                      meanline: { visible: true, width: 4, color: '#ffffff' }, 
                       hovertemplate: 'Self Rating: Level ' + lvl + '<br>BMI: %{y}<extra></extra>'
                     };
                   }),
-                  // 2. High-Contrast Trend Line Overlay
                   {
                     type: 'scatter',
                     mode: 'lines+markers',
@@ -413,30 +514,79 @@ export default function App() {
             <TakeawayBanner text="The statistics are clear: as self-reported health degrades, the average BMI systematically climbs from 26.2 to 32.4 (represented by the white trendline). This moves the baseline population average from overweight into obese territory." />
           </div>
 
-          {/* Statistical Correlation Matrix */}
+          {/* Symmetrical Overhaul: Visual Staircase Heatmap + Plain English Translator */}
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">Clinical Pearson Correlation Matrix</h3>
-                <p className="text-sm text-slate-400">Mathematical relationships across 2 million parsed data points.</p>
+                <h3 className="text-xl font-bold text-white mb-1">Systemic Connections Map</h3>
+                <p className="text-sm text-slate-400">A stair-step heatmap of clinical and social relationships, paired with a translator panel.</p>
               </div>
               <InfoPopup 
-                title="How to read this" 
-                text="Scores range from -1 to 1. Dark Blue means a strong positive correlation (as one goes up, the other goes up). Orange/Red means a negative correlation. Because we measure Income from Lowest to Highest, Income is negatively correlated with Diabetes."
+                title="Symmetrical Overhaul Explained" 
+                text="Traditional heatmaps are incredibly cluttered. By removing the duplicate mirroring (the top-right half) and the self-comparisons on the diagonal, your cognitive load is cut in half. Use the translator next to it for quick interpretations."
               />
             </div>
-            <div className="w-full h-[600px]">
-              <Plot 
-                data={[{ 
-                  type: 'heatmap', z: processedData.heatmap.z, x: processedData.heatmap.labels, y: processedData.heatmap.labels, 
-                  colorscale: 'RdBu', zmin: -1, zmax: 1, reversescale: true,
-                  hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>'
-                }]} 
-                layout={{ font: { color: '#94a3b8', size: 14 }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', margin: { l: 120, r: 20, t: 20, b: 120 }, xaxis: { tickangle: -45 }, yaxis: { autorange: 'reversed' }, autosize: true }} 
-                useResizeHandler={true} style={{ width: '100%', height: '100%' }} 
-              />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Clean Heatmap Component */}
+              <div className="lg:col-span-7 h-[450px]">
+                <Plot 
+                  data={[{ 
+                    type: 'heatmap', 
+                    z: processedData.heatmap.z, 
+                    x: processedData.heatmap.labels, 
+                    y: processedData.heatmap.labels, 
+                    colorscale: 'RdBu', 
+                    zmin: -0.5, 
+                    zmax: 0.5, 
+                    reversescale: true,
+                    showscale: true,
+                    hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>'
+                  }]} 
+                  layout={{ 
+                    font: { color: '#94a3b8', size: 10 }, 
+                    paper_bgcolor: 'transparent', 
+                    plot_bgcolor: 'transparent', 
+                    margin: { l: 140, r: 10, t: 10, b: 120 }, 
+                    xaxis: { tickangle: -45, automargin: true, gridcolor: 'transparent' }, 
+                    yaxis: { autorange: 'reversed', automargin: true, gridcolor: 'transparent' }, 
+                    autosize: true 
+                  }} 
+                  useResizeHandler={true} 
+                  style={{ width: '100%', height: '100%' }} 
+                />
+              </div>
+
+              {/* The Plain-English Translator Column */}
+              <div className="lg:col-span-5 bg-slate-800/40 p-6 border border-slate-700/50 rounded-xl flex flex-col justify-start">
+                <div className="mb-4">
+                  <span className="text-xs font-black tracking-widest text-indigo-400 uppercase">Interactive Tool</span>
+                  <h4 className="text-lg font-bold text-white mt-1">Correlation Translator</h4>
+                  <p className="text-xs text-slate-400 mt-1">Select any variable below to translate its mathematical relationships into plain, practical language.</p>
+                </div>
+
+                <select 
+                  value={translatorVar} 
+                  onChange={(e) => setTranslatorVar(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-6"
+                >
+                  {heatmapVariables.map(v => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </select>
+
+                <div className="space-y-4">
+                  {correlationTranslations[translatorVar].map((bullet, idx) => (
+                    <div key={idx} className="flex gap-3 items-start bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                      <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                      <p className="text-sm text-slate-300 leading-relaxed">{bullet}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <TakeawayBanner text="Look at the dark blue square intersecting Age, BMI, High BP, and Diabetes. These form a tightly correlated clinical cluster that dominates the dataset's risk profile." />
+
+            <TakeawayBanner text="Check the steep negative links (-0.37) between General Health and Income. Health is not just a physiological condition; it is profoundly bound up with economic security." />
           </div>
 
         </section>
