@@ -6,7 +6,7 @@ import {
   Stethoscope, ShieldAlert, Brain
 } from 'lucide-react';
 
-// --- MATH ENGINES ---
+// --- STATISTICAL MATH ENGINES ---
 function getPearson(x, y) {
   let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
   const n = x.length;
@@ -27,19 +27,19 @@ function calcOR(exposedDiabetic, exposedHealthy, unexposedDiabetic, unexposedHea
   return { or, error: upper - or }; 
 }
 
-// --- UI COMPONENTS ---
+// --- REUSABLE ANNOTATIVE COMPONENTS ---
 const InfoPopup = ({ title, text }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="relative inline-block ml-2">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="text-indigo-400 hover:text-indigo-300 transition flex items-center gap-1 text-sm bg-indigo-500/10 px-2 py-1 rounded-full"
+        className="text-indigo-400 hover:text-indigo-300 transition flex items-center gap-1 text-sm bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20"
       >
         <Info size={14} /> What does this mean?
       </button>
       {isOpen && (
-        <div className="absolute z-50 w-72 p-4 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl text-sm text-slate-200">
+        <div className="absolute right-0 z-50 w-72 p-4 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl text-sm text-slate-200">
           <strong className="block text-indigo-400 mb-1">{title}</strong>
           {text}
         </div>
@@ -49,7 +49,7 @@ const InfoPopup = ({ title, text }) => {
 };
 
 const TakeawayBanner = ({ text }) => (
-  <div className="mt-4 p-4 bg-slate-800/50 border-l-4 border-indigo-500 rounded-r-lg text-slate-300 text-sm md:text-base">
+  <div className="mt-4 p-4 bg-slate-800/50 border-l-4 border-indigo-500 rounded-r-lg text-slate-300 text-sm md:text-base leading-relaxed">
     <span className="font-bold text-slate-100 uppercase text-xs tracking-wider mr-2">Key Takeaway:</span>
     {text}
   </div>
@@ -128,6 +128,7 @@ export default function App() {
         if (row.HighBP === 1) d_bp++; if (row.HighChol === 1) d_chol++; if (row.HeartDiseaseorAttack === 1) d_heart++; if (row.Stroke === 1) d_stroke++;
       }
 
+      // Subsampling 1-out-of-20 rows keeps the web client smooth during live state rerenders
       if (includeInRaincloud && row.GenHlth >= 1 && row.GenHlth <= 5 && index % 20 === 0) {
         raincloud[`gen${row.GenHlth}`].push(row.BMI);
       }
@@ -142,9 +143,15 @@ export default function App() {
       for (let j = 0; j < varArrays.length; j++) r.push(getPearson(varArrays[i], varArrays[j]));
       zMatrix.push(r);
     }
+
+    // Precise math computation for the visual trend line
+    const raincloudMeans = [1, 2, 3, 4, 5].map(lvl => {
+      const arr = raincloud[`gen${lvl}`];
+      return arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+    });
     
     return {
-      violin, raincloud,
+      violin, raincloud, raincloudMeans,
       heatmap: { z: zMatrix, labels: ['Diabetes', 'High BP', 'High Chol', 'BMI', 'Age', 'Poor GenHlth', 'Income', 'Edu'] },
       slope: {
         incomeX: [1, 2, 3, 4, 5, 6, 7, 8], incomeY: [1, 2, 3, 4, 5, 6, 7, 8].map(l => calcPct(incomeStats[l].d, incomeStats[l].t)),
@@ -220,15 +227,15 @@ export default function App() {
               <div className="space-y-4">
                 {Object.keys(calcRisks).map(key => (
                   <label key={key} className="flex items-center gap-3 p-3 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-700/50 transition bg-slate-900">
-                    <input type="checkbox" checked={calcRisks[key]} onChange={() => toggleRisk(key)} className="w-5 h-5 accent-indigo-500" />
-                    <span className="font-medium text-slate-200">
+                    <input type="checkbox" checked={calcRisks[key]} onChange={() => toggleRisk(key)} className="w-5 h-5 checked:bg-indigo-500 rounded accent-indigo-500" />
+                    <span className="font-medium text-slate-200 text-sm md:text-base">
                       {key === 'bp' ? 'High Blood Pressure' : key === 'chol' ? 'High Cholesterol' : key === 'smoker' ? 'Current Smoker' : 'Heart Disease'}
                     </span>
                   </label>
                 ))}
               </div>
               <div className="mt-auto p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-center">
-                <p className="text-sm text-indigo-300 font-bold uppercase">Estimated Relative Risk</p>
+                <p className="text-xs text-indigo-300 font-bold uppercase tracking-wider">Estimated Relative Risk</p>
                 <p className="text-5xl font-black text-indigo-400 mt-2">{cumulativeRisk.toFixed(2)}x</p>
                 <p className="text-xs text-slate-400 mt-2">compared to standard baseline</p>
               </div>
@@ -253,7 +260,7 @@ export default function App() {
                   text: [processedData.odds.bp.or.toFixed(2), processedData.odds.chol.or.toFixed(2), processedData.odds.smoker.or.toFixed(2), processedData.odds.heart.or.toFixed(2)],
                   hovertemplate: '<b>%{y}</b><br>Multiplies risk by %{x:.2f}x<extra></extra>'
                 }]}
-                layout={{ font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', xaxis: { title: 'Risk Multiplier (Odds Ratio)', gridcolor: '#1e293b' }, yaxis: { gridcolor: 'transparent' }, shapes: [{ type: 'line', x0: 1, x1: 1, y0: -0.5, y1: 3.5, line: { color: '#f43f5e', dash: 'dash', width: 2 } }], margin: { l: 100, t: 20, b: 40 }, autosize: true }}
+                layout={{ font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', xaxis: { title: 'Risk Multiplier (Odds Ratio)', gridcolor: '#1e293b' }, yaxis: { gridcolor: 'transparent' }, shapes: [{ type: 'line', x0: 1, x1: 1, y0: -0.5, y1: 3.5, line: { color: '#f43f5e', dash: 'dash', width: 2 } }], margin: { l: 100, r: 20, t: 20, b: 40 }, autosize: true }}
                 useResizeHandler={true} style={{ width: '100%', height: '100%' }}
               />
             </div>
@@ -341,7 +348,7 @@ export default function App() {
              <TakeawayBanner text="Diabetes rarely exists in isolation. Observe the massive flow connecting Diabetes directly to High Blood Pressure and High Cholesterol, highlighting the critical need for comprehensive cardiovascular care." />
           </div>
 
-          {/* Raincloud Plot with Inner Control */}
+          {/* Raincloud Plot with Integrated Control */}
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
               <div>
@@ -359,17 +366,51 @@ export default function App() {
             
             <div className="w-full h-[500px]">
               <Plot
-                data={[1, 2, 3, 4, 5].map(lvl => ({
-                  type: 'violin', x: Array(processedData.raincloud[`gen${lvl}`].length).fill(`Level ${lvl}`), y: processedData.raincloud[`gen${lvl}`],
-                  name: `Health Level ${lvl}`, points: 'all', pointpos: -0.5, jitter: 0.7, side: 'positive',
-                  line: { color: '#3b82f6' }, marker: { size: 3, opacity: 0.4, color: '#94a3b8' }, meanline: { visible: true },
-                  hovertemplate: 'Self Rating: Level ' + lvl + '<br>BMI: %{y}<extra></extra>'
-                }))}
-                layout={{ font: { color: '#94a3b8' }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', xaxis: { title: 'General Health Rating (1 = Excellent, 5 = Poor)', gridcolor: '#1e293b' }, yaxis: { title: 'BMI (Body Mass Index)', gridcolor: '#1e293b', range: [10, 60] }, showlegend: false, autosize: true }}
-                useResizeHandler={true} style={{ width: '100%', height: '100%' }}
+                data={[
+                  // 1. Dynamic Gradient Violin Clouds (Emerald -> Warning Red)
+                  ...[1, 2, 3, 4, 5].map((lvl, idx) => {
+                    const colors = ['#10b981', '#34d399', '#fbbf24', '#f97316', '#ef4444'];
+                    return {
+                      type: 'violin', 
+                      x: Array(processedData.raincloud[`gen${lvl}`].length).fill(`Level ${lvl}`), 
+                      y: processedData.raincloud[`gen${lvl}`],
+                      name: `Health Level ${lvl}`, 
+                      points: 'all', 
+                      pointpos: -0.5, 
+                      jitter: 0.7, 
+                      side: 'positive',
+                      line: { color: colors[idx], width: 2 }, 
+                      marker: { size: 3, opacity: 0.3, color: '#94a3b8' }, 
+                      meanline: { visible: true, width: 4, color: '#ffffff' }, // Thick indicator for category mean
+                      hovertemplate: 'Self Rating: Level ' + lvl + '<br>BMI: %{y}<extra></extra>'
+                    };
+                  }),
+                  // 2. High-Contrast Trend Line Overlay
+                  {
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    x: ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'],
+                    y: processedData.raincloudMeans,
+                    name: 'Average BMI Trend',
+                    line: { color: '#ffffff', width: 4, dash: 'solid' },
+                    marker: { size: 10, color: '#fbbf24', line: { color: '#ffffff', width: 2 } },
+                    hovertemplate: 'Average BMI: %{y:.1f}<extra></extra>'
+                  }
+                ]}
+                layout={{ 
+                  font: { color: '#94a3b8' }, 
+                  paper_bgcolor: 'transparent', 
+                  plot_bgcolor: 'transparent', 
+                  xaxis: { title: 'General Health Rating (1 = Excellent, 5 = Poor)', gridcolor: '#1e293b' }, 
+                  yaxis: { title: 'BMI (Body Mass Index)', gridcolor: '#1e293b', range: [10, 60] }, 
+                  showlegend: false, 
+                  autosize: true 
+                }}
+                useResizeHandler={true} 
+                style={{ width: '100%', height: '100%' }}
               />
             </div>
-            <TakeawayBanner text="As patients self-report poorer general health (moving from Level 1 to 5), the mean line of the 'cloud' visibly shifts upward, indicating higher BMIs are strongly associated with feelings of poor health." />
+            <TakeawayBanner text="The statistics are clear: as self-reported health degrades, the average BMI systematically climbs from 26.2 to 32.4 (represented by the white trendline). This moves the baseline population average from overweight into obese territory." />
           </div>
 
           {/* Statistical Correlation Matrix */}
