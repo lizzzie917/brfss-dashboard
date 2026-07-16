@@ -1263,6 +1263,122 @@ export default function App() {
           </div>
 
         </section>
+
+        {/* ================= THE THREE LENSES SUMMARY GRID ================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Lens 1 Summary Card */}
+          <div className="bg-slate-900 border border-slate-800 hover:border-indigo-500/30 transition-all duration-300 p-6 rounded-2xl flex flex-col justify-between shadow-xl group">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-indigo-500/10 rounded-xl text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
+                  <Activity size={24} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/5 px-2.5 py-1 rounded-md border border-indigo-500/10">
+                  Lens 1
+                </span>
+              </div>
+              
+              <h3 className="text-lg font-bold text-white mb-2">Analyzing Patient Risk</h3>
+              <p className="text-xs text-slate-400 mb-4 font-semibold uppercase tracking-widest">Clinical Drivers</p>
+              <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                Explore how standard demographic and physiological conditions mathematically multiply risks. Observe how metabolic parameters compound against standard population baselines.
+              </p>
+
+              {/* Micro Callout Block */}
+              <div className="bg-slate-950/55 p-4 rounded-xl border border-slate-800 space-y-2 mb-6">
+                <div className="flex items-center gap-2 text-xs font-bold text-rose-400 uppercase tracking-wide">
+                  <ShieldAlert size={14} /> High-Risk Multiplier
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  An individual with both high blood pressure and high cholesterol is statistically <strong>over 10 times</strong> more likely to carry a diabetes diagnosis than someone with a clean baseline.
+                </p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => onNavigate && onNavigate('lens1')}
+              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-lg transition-colors duration-200 border border-slate-700 flex items-center justify-center gap-2"
+            >
+              Explore Clinical Risks &rarr;
+            </button>
+          </div>
+
+          {/* Lens 2 Summary Card */}
+          <div className="bg-slate-900 border border-slate-800 hover:border-emerald-500/30 transition-all duration-300 p-6 rounded-2xl flex flex-col justify-between shadow-xl group">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
+                  <Users size={24} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/5 px-2.5 py-1 rounded-md border border-emerald-500/10">
+                  Lens 2
+                </span>
+              </div>
+              
+              <h3 className="text-lg font-bold text-white mb-2">Social Stratification</h3>
+              <p className="text-xs text-slate-400 mb-4 font-semibold uppercase tracking-widest">Income, Education &amp; Access</p>
+              <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                Investigate how household income scales and educational achievement act as systemic buffers. View the deep rates of systemic barriers separating healthy and diabetic cohorts.
+              </p>
+
+              {/* Micro Callout Block */}
+              <div className="bg-slate-950/55 p-4 rounded-xl border border-slate-800 space-y-2 mb-6">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wide">
+                  <TrendingUp size={14} /> Socioeconomic Gradient
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  A steep gradient persists: poorest earners exhibit <strong>more than double</strong> the diabetes rate (~40%) of those in upper-income classes, while walking difficulty is nearly tripled.
+                </p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => onNavigate && onNavigate('lens2')}
+              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-lg transition-colors duration-200 border border-slate-700 flex items-center justify-center gap-2"
+            >
+              Explore Social Barriers &rarr;
+            </button>
+          </div>
+
+          {/* Lens 3 Summary Card */}
+          <div className="bg-slate-900 border border-slate-800 hover:border-sky-500/30 transition-all duration-300 p-6 rounded-2xl flex flex-col justify-between shadow-xl group">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-sky-500/10 rounded-xl text-sky-400 group-hover:bg-sky-500/20 transition-colors">
+                  <Heart size={24} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-sky-400 bg-sky-500/5 px-2.5 py-1 rounded-md border border-sky-500/10">
+                  Lens 3
+                </span>
+              </div>
+              
+              <h3 className="text-lg font-bold text-white mb-2">Intersecting Conditions</h3>
+              <p className="text-xs text-slate-400 mb-4 font-semibold uppercase tracking-widest">Subjective Wellness</p>
+              <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                Examine how biological markers, secondary cardiovascular disease pathways, self-reported general health distributions, and mental health variables systematically intertwine.
+              </p>
+
+              {/* Micro Callout Block */}
+              <div className="bg-slate-950/55 p-4 rounded-xl border border-slate-800 space-y-2 mb-6">
+                <div className="flex items-center gap-2 text-xs font-bold text-sky-400 uppercase tracking-wide">
+                  <Compass size={14} /> Pathological Gateway
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Diabetes functions as an interconnected gateway. <strong>Over 75%</strong> of diabetic individuals also battle chronic high blood pressure, and income correlates sharply with general health (-0.37).
+                </p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => onNavigate && onNavigate('lens3')}
+              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-lg transition-colors duration-200 border border-slate-700 flex items-center justify-center gap-2"
+            >
+              Explore Systemic Overlaps &rarr;
+            </button>
+          </div>
+
+        </div>
  
       </div>
     </div>
