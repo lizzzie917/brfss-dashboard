@@ -99,7 +99,7 @@ const ChartInfoButton = ({ title, text }) => {
 
 const KeyInsightBanner = ({ text }) => (
   <div className="mt-4 p-4 bg-slate-800/50 border-l-4 border-indigo-500 rounded-r-lg text-slate-300 text-sm md:text-base leading-relaxed">
-    <span className="font-bold text-indigo-400 uppercase text-xs tracking-wider block mb-1">Practical Insight:</span>
+    <span className="font-bold text-indigo-400 uppercase text-xs tracking-wider block mb-1">Key Insight:</span>
     {text}
   </div>
 );
@@ -592,6 +592,7 @@ export default function App() {
                   />
                 </div>
               </div>
+              <KeyInsightBanner text="High blood pressure and high cholesterol create a multiplicative cardiovascular threat. An individual with both conditions is statistically over 10 times more likely to carry a diabetes diagnosis than someone with a clean baseline." />
             </div>
 
             {/* BAR CHART FOR PATHOLOGY COMPARISONS */}
@@ -636,6 +637,7 @@ export default function App() {
                   style={{ width: '100%', height: '100%' }}
                 />
               </div>
+              <KeyInsightBanner text="Mobility limitations and high blood pressure independently stand out as the two largest absolute drivers of diabetes risk in this dataset." />
             </div>
           </div>
 
@@ -1004,6 +1006,7 @@ export default function App() {
                 </p>
               </div>
             </div>
+            <KeyInsightBanner text="Diabetes acts as a massive metabolic gateway. Over 75% of diabetic individuals also battle chronic high blood pressure, tightly linking endocrine disease to cardiovascular failure." />
           </div>
 
           {/* Part 3a Descriptor */}
@@ -1111,6 +1114,7 @@ export default function App() {
                 style={{ width: '100%', height: '100%' }}
               />
             </div>
+            <KeyInsightBanner text="Objective physical measurements closely mirror subjective feelings. As the mass of the 'violin' bulges into obese BMI territories, patients consistently rate their general health as progressively worse." />
           </div>
 
           {/* Part 3b Descriptor */}
