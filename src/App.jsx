@@ -1092,84 +1092,47 @@ export default function App() {
               title="Pearson Correlation Matrix" 
               text="This matrix calculates Pearson correlation coefficients (r) between -1.0 and 1.0. We removed the mirrored upper diagonal to reduce visual noise. Deep blue indicates a strong positive link, while deep red indicates a strong inverse link." 
             />
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-white mb-1">3.3 Systemic Connections Map</h3>
-                <p className="text-sm text-slate-400">An asymmetric heatmap of clinical and social relationships paired with an interpretation panel.</p>
-              </div>
+            <div className="mb-6 pr-12 lg:pr-32">
+              <h3 className="text-xl font-bold text-white mb-1">Systemic Connections Map</h3>
+              <p className="text-sm text-slate-400">An asymmetric heatmap of clinical and social relationships.</p>
             </div>
 
-            {/* Changed to xl:grid-cols-2 and boosted the heatmap height to 600px to avoid compression */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+            <div className="flex flex-col gap-8">
+              <div className="w-full h-[550px] lg:h-[600px]">
+                <Plot 
+                  data={[{ type: 'heatmap', z: processedData.heatmap.z, x: processedData.heatmap.labels, y: processedData.heatmap.labels, colorscale: 'RdBu', zmin: -0.5, zmax: 0.5, reversescale: true, showscale: true, hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>' }]} 
+                  layout={{ font: { color: '#94a3b8', size: 11 }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', margin: { l: 150, r: 10, t: 20, b: 150 }, xaxis: { tickangle: -45, automargin: true }, yaxis: { autorange: 'reversed', automargin: true }, autosize: true }} 
+                  useResizeHandler={true} style={{ width: '100%', height: '100%' }} 
+                />
+              </div>
               
-              {/* Asymmetric Heatmap */}
-              <div className="flex flex-col h-full w-full">
-                <div className="w-full h-[550px] lg:h-[650px]">
-                  <Plot 
-                    data={[{ 
-                      type: 'heatmap', 
-                      z: processedData.heatmap.z, 
-                      x: processedData.heatmap.labels, 
-                      y: processedData.heatmap.labels, 
-                      colorscale: 'RdBu', 
-                      zmin: -0.5, 
-                      zmax: 0.5, 
-                      reversescale: true,
-                      showscale: true,
-                      hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>'
-                    }]} 
-                    layout={{ 
-                      font: { color: '#94a3b8', size: 11 }, 
-                      paper_bgcolor: 'transparent', 
-                      plot_bgcolor: 'transparent', 
-                      margin: { l: 150, r: 10, t: 20, b: 150 }, 
-                      xaxis: { tickangle: -45, automargin: true, gridcolor: 'transparent' }, 
-                      yaxis: { autorange: 'reversed', automargin: true, gridcolor: 'transparent' }, 
-                      autosize: true 
-                    }} 
-                    useResizeHandler={true} 
-                    style={{ width: '100%', height: '100%' }} 
-                  />
-                </div>
-                
-                {/* Visual Legend specifically for heatmap interpretations */}
-                <div className="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
-                  <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider">How to Read the Color Mapping:</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-blue-600 rounded flex-shrink-0" />
-                      <span className="text-slate-400"><strong>Deep Blue</strong> (+0.25 to +1.00): Strong positive co-occurrence.</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-slate-100 rounded border border-slate-300 flex-shrink-0" />
-                      <span className="text-slate-400"><strong>White/Light</strong> (-0.10 to +0.10): Statistical independence.</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-red-600 rounded flex-shrink-0" />
-                      <span className="text-slate-400"><strong>Deep Red</strong> (-0.10 to -1.00): Strong inverse relationship.</span>
-                    </div>
+              <div className="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider">How to Read the Color Mapping:</h5>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-blue-600 rounded flex-shrink-0" />
+                    <span className="text-slate-400"><strong>Deep Blue</strong> (+0.25 to +1.00): Strong positive co-occurrence.</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-slate-100 rounded border border-slate-300 flex-shrink-0" />
+                    <span className="text-slate-400"><strong>White/Light</strong> (-0.10 to +0.10): Statistical independence.</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-red-600 rounded flex-shrink-0" />
+                    <span className="text-slate-400"><strong>Deep Red</strong> (-0.10 to -1.00): Strong inverse relationship.</span>
                   </div>
                 </div>
               </div>
-
-              {/* Pairwise Translator Column */}
-              <div className="bg-slate-800/40 p-6 lg:p-8 border border-slate-700/50 rounded-xl flex flex-col justify-start w-full">
+              
+              <div className="bg-slate-800/40 p-6 lg:p-8 border border-slate-700/50 rounded-xl w-full">
                 <div className="mb-6">
                   <span className="text-xs font-black tracking-widest text-indigo-400 uppercase">Interactive Tool</span>
                   <h4 className="text-xl font-bold text-white mt-1">Correlation Translator</h4>
                   <p className="text-sm text-slate-400 mt-2">Select a key pair of variables below to translate mathematical patterns into clear clinical insights.</p>
                 </div>
-
-                <select 
-                  value={translatorVar} 
-                  onChange={(e) => setTranslatorVar(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-8 shadow-inner"
-                >
-                  {Object.keys(correlationTranslations).map(pair => (
-                    <option key={pair} value={pair}>{pair}</option>
-                  ))}
+                <select value={translatorVar} onChange={(e) => setTranslatorVar(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-8 shadow-inner">
+                  {Object.keys(correlationTranslations).map(pair => <option key={pair} value={pair}>{pair}</option>)}
                 </select>
-
                 <div className="space-y-5">
                   {correlationTranslations[translatorVar].map((bullet, idx) => (
                     <div key={idx} className="flex gap-4 items-start bg-slate-900/50 p-4 rounded-xl border border-slate-800">
@@ -1181,10 +1144,9 @@ export default function App() {
               </div>
             </div>
 
-            <KeyInsightBanner text="Note the negative correlation (-0.37) between General Health and Annual Income: health is deeply bound up with economic security and resources." />
+            <TakeawayBanner text="Notice the deep red negative correlation (-0.37) between General Health and Annual Income. Health is deeply bound up with economic security; as resources decrease, subjective health ratings plummet." />
           </div>
 
-          {/* Part 3c Descriptor */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
               Biological markers, socioeconomic backgrounds, and daily behaviors are all part of an interconnected system. This asymmetric heatmap simplifies these mathematical relationships, removing duplicate values to highlight key systemic correlations. Blue squares represent positive correlations, while red squares show negative links. Use the legend below the chart to interpret the intensity of the colors. Select any pair of variables in the Correlation Translator dropdown to view a real-world translation of how they interact.
