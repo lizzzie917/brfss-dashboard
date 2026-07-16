@@ -365,7 +365,7 @@ export default function App() {
     return (
       <div className="flex h-screen bg-slate-950 text-slate-100 items-center justify-center flex-col gap-6">
         <Activity className="animate-spin text-indigo-500" size={64} />
-        <h2 className="text-2xl font-bold mb-2">Analyzing 70,000 Patient Records...</h2>
+        <h2 className="text-2xl font-bold mb-2">Analyzing 70,000+ Patient Records...</h2>
       </div>
     );
   }
@@ -498,7 +498,7 @@ export default function App() {
           <div className="bg-indigo-950/25 p-5 rounded-2xl border border-indigo-900/35">
             <span className="text-xs font-bold text-indigo-300 uppercase tracking-widest block mb-2">Dashboard Objective</span>
             <p className="text-indigo-200 leading-relaxed font-medium">
-              This interactive dashboard translates complex numbers from 70,000 real people into simple wellness stories. It is designed to show how our personal life situations (like household income and school access) combine with physical markers and common behaviors to shape our risk of developing diabetes.
+              This interactive dashboard translates complex numbers from more than 70,000 real people into simple wellness stories. It is designed to show how our personal life situations (like household income and school access) combine with physical markers and common behaviors to shape our risk of developing diabetes.
             </p>
             <p className="text-indigo-300/80 text-xs mt-4 font-semibold italic">
               Use the top navigation bar or scroll down to explore clinical indicators, societal structures, and chronic overlaps. Professionals can access detailed reports via "Professional Deep Dive" buttons.
@@ -519,7 +519,7 @@ export default function App() {
             <div className="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 mt-4 animate-fadeIn">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Technical Summary & Dataset Info</span>
               <p className="text-slate-300 leading-relaxed">
-                This dashboard analyzes 70,000 anonymized health records extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) 2015 dataset. Using calculated statistical parameters, multi-dimensional stratification, and correlation matrices, we explore non-linear logistic markers, demographic discrepancies, and cardiovascular overlaps.
+                This dashboard analyzes 70,692 anonymized health records extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) 2015 dataset. Using calculated statistical parameters, multi-dimensional stratification, and correlation matrices, we explore non-linear logistic markers, demographic discrepancies, and cardiovascular overlaps.
               </p>
               <a 
                 href="https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset?resource=download" 
