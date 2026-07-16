@@ -906,29 +906,22 @@ export default function App() {
         <section id="part3" className="space-y-8 scroll-mt-20">
           <div className="border-b border-slate-800 pb-4 mt-16 mb-8">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Stethoscope className="text-blue-500" size={24} /> Lens 3: Intersecting Conditions & Subjective Wellness
+              <Stethoscope className="text-blue-500" size={24} /> Lens 3:Intersecting Conditions & Subjective Wellness
             </h2>
             <p className="text-slate-400 mt-2">Examine how biological markers, cardiovascular disease pathways, and mental health indicators intersect.</p>
           </div>
 
           {/* Sankey Flow Visual with Interactive Navigation Cards */}
           <div id="sankey" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full space-y-6 scroll-mt-24">
-            
-            {/* Header Container: Splits title on left, info button on the far right */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-white">3.1 The Web of Chronic Conditions</h3>
-                <p className="text-sm text-slate-400 mt-1">
-                  Visualizing how diabetes maps onto secondary cardiovascular complications. Use the colored selection cards below the diagram to view detailed clinical profiles.
-                </p>
-              </div>
-              <div className="shrink-0 self-start lg:self-auto">
-                <ChartInfoButton 
-                  title="Alluvial Flow (Sankey)" 
-                  text="This graph calculates the overlapping prevalence of cardiovascular conditions specifically within the diabetic cohort subset. Thicker bands indicate a larger absolute volume of patients carrying both conditions." 
-                />
-              </div>
+            <ChartInfoButton title="Alluvial Flow (Sankey)" text="This graph calculates the overlapping prevalence of cardiovascular conditions specifically within the diabetic cohort subset. Thicker bands indicate a larger absolute volume of patients carrying both conditions." />
+            <div className="pr-12 lg:pr-32">
+            <div>
+              <h3 className="text-xl font-bold text-white">3.1 The Web of Chronic Conditions</h3>
+              <p className="text-sm text-slate-400 mt-1">
+                Visualizing how diabetes maps onto secondary cardiovascular complications. Use the colored selection cards below the diagram to view detailed clinical profiles.
+              </p>
             </div>
+          </div>
 
             <div className="w-full h-[300px]">
               <Plot
@@ -945,7 +938,6 @@ export default function App() {
             {/* NAVIGATION CARDS */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
               <button 
-                type="button"
                 onClick={() => setSelectedNode(0)}
                 className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 0 ? 'bg-rose-950/40 border-rose-500 text-rose-300 ring-2 ring-rose-500/30' : 'bg-slate-950 border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-slate-200'}`}
               >
@@ -953,7 +945,6 @@ export default function App() {
                 <span className="font-bold text-xs sm:text-sm block">1. Diabetes Base</span>
               </button>
               <button 
-                type="button"
                 onClick={() => setSelectedNode(1)}
                 className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 1 ? 'bg-sky-950/40 border-sky-500 text-sky-300 ring-2 ring-sky-500/30' : 'bg-slate-950 border-slate-800 hover:border-sky-500/40 text-slate-400 hover:text-slate-200'}`}
               >
@@ -961,7 +952,6 @@ export default function App() {
                 <span className="font-bold text-xs sm:text-sm block">2. High BP</span>
               </button>
               <button 
-                type="button"
                 onClick={() => setSelectedNode(2)}
                 className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 2 ? 'bg-amber-950/40 border-amber-500 text-amber-300 ring-2 ring-amber-500/30' : 'bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-400 hover:text-slate-200'}`}
               >
@@ -969,7 +959,6 @@ export default function App() {
                 <span className="font-bold text-xs sm:text-sm block">3. High Cholesterol</span>
               </button>
               <button 
-                type="button"
                 onClick={() => setSelectedNode(3)}
                 className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 3 ? 'bg-purple-950/40 border-purple-500 text-purple-300 ring-2 ring-purple-500/30' : 'bg-slate-950 border-slate-800 hover:border-purple-500/40 text-slate-400 hover:text-slate-200'}`}
               >
@@ -977,7 +966,6 @@ export default function App() {
                 <span className="font-bold text-xs sm:text-sm block">4. Heart Disease</span>
               </button>
               <button 
-                type="button"
                 onClick={() => setSelectedNode(4)}
                 className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 4 ? 'bg-emerald-950/40 border-emerald-500 text-emerald-300 ring-2 ring-emerald-500/30' : 'bg-slate-950 border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-slate-200'}`}
               >
@@ -1013,7 +1001,6 @@ export default function App() {
             </p>
             <div>
               <button 
-                type="button"
                 onClick={() => setDeepDivePart3a(!deepDivePart3a)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
@@ -1035,37 +1022,31 @@ export default function App() {
 
           {/* SPLIT VIOLIN PLOT */}
           <div id="violins" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
+            <ChartInfoButton 
+              title="Violin Density Plots" 
+              text="A violin plot combines a traditional box plot with a kernel density estimation (KDE) curve. Wider sections represent where the highest concentration of patient BMIs fall. The white line tracks the calculated statistical mean." 
+            />
             
-            {/* Header Container: Splits title on left, controls and info button on the far right */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
-              <div className="space-y-1">
+              <div>
                 <h4 className="text-lg font-bold text-white mb-1">3.2 Continuous BMI Distributions vs. Self-Reported General Health</h4>
                 <p className="text-xs text-slate-400">
                   Observe the full density of weights across general health levels (1 = Excellent, 5 = Poor).
                 </p>
               </div>
               
-              {/* Upper Right Action Group */}
-              <div className="flex items-center gap-4 self-stretch lg:self-auto justify-between lg:justify-end">
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 w-full lg:w-72">
-                  <label className="flex justify-between text-xs text-slate-300 font-bold mb-3">
-                    <span>Minimum Bad Mental Health Days:</span>
-                    <span className="text-indigo-400">{mentalHealthDays} Days</span>
-                  </label>
-                  <input 
-                    type="range" 
-                    min="0" max="30" 
-                    value={mentalHealthDays} 
-                    onChange={(e) => setMentalHealthDays(parseInt(e.target.value, 10))} 
-                    className="w-full accent-indigo-500 cursor-pointer" 
-                  />
-                </div>
-                <div className="shrink-0">
-                  <ChartInfoButton 
-                    title="Violin Density Plots" 
-                    text="A violin plot combines a traditional box plot with a kernel density estimation (KDE) curve. Wider sections represent where the highest concentration of patient BMIs fall. The white line tracks the calculated statistical mean." 
-                  />
-                </div>
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 w-full lg:w-72">
+                <label className="flex justify-between text-xs text-slate-300 font-bold mb-3">
+                  <span>Minimum Bad Mental Health Days:</span>
+                  <span className="text-indigo-400">{mentalHealthDays} Days</span>
+                </label>
+                <input 
+                  type="range" 
+                  min="0" max="30" 
+                  value={mentalHealthDays} 
+                  onChange={(e) => setMentalHealthDays(parseInt(e.target.value, 10))} 
+                  className="w-full accent-indigo-500 cursor-pointer" 
+                />
               </div>
             </div>
 
@@ -1120,7 +1101,6 @@ export default function App() {
             </p>
             <div>
               <button 
-                type="button"
                 onClick={() => setDeepDivePart3b(!deepDivePart3b)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
@@ -1142,18 +1122,14 @@ export default function App() {
 
           {/* Decompressed Heatmap & Correlation Translator */}
           <div id="heatmap" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
-            
-            {/* Header Container: Splits title on left, info button on the far right */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <div className="space-y-1">
+            <ChartInfoButton 
+              title="Pearson Correlation Matrix" 
+              text="This matrix calculates Pearson correlation coefficients (r) between -1.0 and 1.0. We removed the mirrored upper diagonal to reduce visual noise. Deep blue indicates a strong positive link, while deep red indicates a strong inverse link." 
+            />
+            <div className="flex justify-between items-start mb-6">
+              <div>
                 <h3 className="text-xl font-bold text-white mb-1">3.3 Systemic Connections Map</h3>
                 <p className="text-sm text-slate-400">An asymmetric heatmap of clinical and social relationships paired with an interpretation panel.</p>
-              </div>
-              <div className="shrink-0 self-start md:self-auto">
-                <ChartInfoButton 
-                  title="Pearson Correlation Matrix" 
-                  text="This matrix calculates Pearson correlation coefficients (r) between -1.0 and 1.0. We removed the mirrored upper diagonal to reduce visual noise. Deep blue indicates a strong positive link, while deep red indicates a strong inverse link." 
-                />
               </div>
             </div>
 
@@ -1249,7 +1225,6 @@ export default function App() {
             </p>
             <div>
               <button 
-                type="button"
                 onClick={() => setDeepDivePart3c(!deepDivePart3c)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
@@ -1268,6 +1243,7 @@ export default function App() {
               </div>
             )}
           </div>
+
         </section>
       </div>
     </div>
