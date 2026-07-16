@@ -97,9 +97,9 @@ const InfoPopup = ({ title, text }) => {
   );
 };
 
-const PracticalInsightBanner = ({ text }) => (
+const KeyInsightBanner = ({ text }) => (
   <div className="mt-4 p-4 bg-slate-800/50 border-l-4 border-indigo-500 rounded-r-lg text-slate-300 text-sm md:text-base leading-relaxed">
-    <span className="font-bold text-indigo-400 uppercase text-xs tracking-wider block mb-1">Practical Insight:</span>
+    <span className="font-bold text-indigo-400 uppercase text-xs tracking-wider block mb-1">Key Insight:</span>
     {text}
   </div>
 );
@@ -724,7 +724,7 @@ export default function App() {
                 />
               )}
             </div>
-            <PracticalInsightBanner text={slopeView === 'income' ?
+            <KeyInsightBanner text={slopeView === 'income' ?
               "A steep gradient persists across household income classes: the poorest earners exhibit more than double the diabetes rate of those in upper-income classes."
               : "Educational achievement functions as a protective socioeconomic proxy: those completing graduate studies show half the diabetic rates of those who did not complete high school."} 
             />
@@ -823,7 +823,7 @@ export default function App() {
               />
             </div>
             
-            <PracticalInsightBanner text={butterflyView === 'diet' ? 
+            <KeyInsightBanner text={butterflyView === 'diet' ? 
               "While regular dietary intake of fruits and vegetables shows only small declines, physical activity levels reveal a severe drop-off among diabetic populations."
               : "Structural health disparities are alarming: patients with diabetes report experiencing difficulty walking and avoiding medical care due to costs far more frequently."} 
             />
@@ -1180,7 +1180,7 @@ export default function App() {
               </div>
             </div>
 
-            <PracticalInsightBanner text="Note the negative correlation (-0.37) between General Health and Annual Income: health is deeply bound up with economic security and resources." />
+            <KeyInsightBanner text="Note the negative correlation (-0.37) between General Health and Annual Income: health is deeply bound up with economic security and resources." />
           </div>
 
           {/* Part 3c Descriptor */}
