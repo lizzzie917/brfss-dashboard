@@ -887,6 +887,7 @@ export default function App() {
                 Visualizing how diabetes maps onto secondary cardiovascular complications. Use the colored selection cards below the diagram to view detailed clinical profiles.
               </p>
             </div>
+          </div>
 
             <div className="w-full h-[300px]">
               <Plot
