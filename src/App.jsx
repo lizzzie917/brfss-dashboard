@@ -99,7 +99,7 @@ const ChartInfoButton = ({ title, text }) => {
 
 const KeyInsightBanner = ({ text }) => (
   <div className="mt-4 p-4 bg-slate-800/50 border-l-4 border-indigo-500 rounded-r-lg text-slate-300 text-sm md:text-base leading-relaxed">
-    <span className="font-bold text-indigo-400 uppercase text-xs tracking-wider block mb-1">Practical Insight:</span>
+    <span className="font-bold text-indigo-400 uppercase text-xs tracking-wider block mb-1">Key Insight:</span>
     {text}
   </div>
 );
@@ -1144,7 +1144,7 @@ export default function App() {
               </div>
             </div>
 
-            <TakeawayBanner text="Notice the deep red negative correlation (-0.37) between General Health and Annual Income. Health is deeply bound up with economic security; as resources decrease, subjective health ratings plummet." />
+            <KeyInsightBanner text="Notice the deep red negative correlation (-0.37) between General Health and Annual Income. Health is deeply bound up with economic security; as resources decrease, subjective health ratings plummet." />
           </div>
 
           <div className="space-y-4 max-w-4xl">
