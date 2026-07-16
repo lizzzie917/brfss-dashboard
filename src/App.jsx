@@ -906,114 +906,128 @@ export default function App() {
         <section id="part3" className="space-y-8 scroll-mt-20">
           <div className="border-b border-slate-800 pb-4 mt-16 mb-8">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Stethoscope className="text-blue-500" size={24} /> Lens 3: Intersecting Conditions & Subjective Wellness
+              <Stethoscope className="text-blue-500" size={24} /> 
+              Intersecting Conditions & Subjective Wellness
             </h2>
             <p className="text-slate-400 mt-2">Examine how biological markers, cardiovascular disease pathways, and mental health indicators intersect.</p>
           </div>
 
-          {/* Sankey Flow Visual with Interactive Navigation Cards */}
-          <div id="sankey" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full space-y-6 scroll-mt-24">
-            
-            {/* Header Container: Splits title on left, info button on the far right */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-white">3.1 The Web of Chronic Conditions</h3>
-                <p className="text-sm text-slate-400 mt-1">
-                  Visualizing how diabetes maps onto secondary cardiovascular complications. Use the colored selection cards below the diagram to view detailed clinical profiles.
-                </p>
-              </div>
-              <div className="shrink-0 self-start lg:self-auto">
-                <ChartInfoButton 
-                  title="Alluvial Flow (Sankey)" 
-                  text="This graph calculates the overlapping prevalence of cardiovascular conditions specifically within the diabetic cohort subset. Thicker bands indicate a larger absolute volume of patients carrying both conditions." 
+          {/* ================= SANKEY CHART SUB-SECTION ================= */}
+          <div id="sankey" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
+            <ChartInfoButton 
+              title="Alluvial Flow (Sankey)" 
+              text="This graph calculates the overlapping prevalence of cardiovascular conditions specifically within the diabetic cohort subset. Thicker bands indicate a larger absolute volume of patients carrying both conditions." 
+            />
+            <div className="mb-6 pr-12 lg:pr-32">
+              <h3 className="text-xl font-bold text-white mb-1">The Web of Chronic Conditions</h3>
+              <p className="text-sm text-slate-400">Visualizing how diabetes maps onto secondary cardiovascular complications.</p>
+            </div>
+
+            <div className="flex flex-col gap-8">
+              {/* 1. Plot Container */}
+              <div className="w-full h-[320px]">
+                <Plot
+                  data={[{ 
+                    type: 'sankey', 
+                    orientation: 'h', 
+                    node: { 
+                      pad: 20, 
+                      thickness: 30, 
+                      line: { color: 'transparent', width: 0 }, 
+                      label: processedData.sankey.nodes, 
+                      color: ['#f43f5e', '#38bdf8', '#fbbf24', '#a855f7', '#10b981'] 
+                    }, 
+                    link: { 
+                      source: processedData.sankey.links.source, 
+                      target: processedData.sankey.links.target, 
+                      value: processedData.sankey.links.value, 
+                      color: 'rgba(148, 163, 184, 0.15)' 
+                    } 
+                  }]}
+                  layout={{ 
+                    font: { color: '#f8fafc', size: 14 }, 
+                    paper_bgcolor: 'transparent', 
+                    plot_bgcolor: 'transparent', 
+                    margin: { l: 20, r: 120, t: 20, b: 20 }, 
+                    autosize: true 
+                  }}
+                  useResizeHandler={true} 
+                  style={{ width: '100%', height: '100%' }}
                 />
               </div>
-            </div>
 
-            <div className="w-full h-[300px]">
-              <Plot
-                data={[{
-                  type: 'sankey', orientation: 'h',
-                  node: { pad: 20, thickness: 30, line: { color: 'transparent', width: 0 }, label: processedData.sankey.nodes, color: ['#f43f5e', '#38bdf8', '#fbbf24', '#a855f7', '#10b981'] },
-                  link: { source: processedData.sankey.links.source, target: processedData.sankey.links.target, value: processedData.sankey.links.value, color: 'rgba(148, 163, 184, 0.15)' }
-                }]}
-                layout={{ font: { color: '#f8fafc', size: 14 }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', margin: { l: 20, r: 120, t: 20, b: 20 }, autosize: true }}
-                useResizeHandler={true} style={{ width: '100%', height: '100%' }}
-              />
-            </div>
-
-            {/* NAVIGATION CARDS */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
-              <button 
-                type="button"
-                onClick={() => setSelectedNode(0)}
-                className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 0 ? 'bg-rose-950/40 border-rose-500 text-rose-300 ring-2 ring-rose-500/30' : 'bg-slate-950 border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-slate-200'}`}
-              >
-                <div className="w-3 h-3 rounded-full bg-rose-500 mb-2" />
-                <span className="font-bold text-xs sm:text-sm block">1. Diabetes Base</span>
-              </button>
-              <button 
-                type="button"
-                onClick={() => setSelectedNode(1)}
-                className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 1 ? 'bg-sky-950/40 border-sky-500 text-sky-300 ring-2 ring-sky-500/30' : 'bg-slate-950 border-slate-800 hover:border-sky-500/40 text-slate-400 hover:text-slate-200'}`}
-              >
-                <div className="w-3 h-3 rounded-full bg-sky-400 mb-2" />
-                <span className="font-bold text-xs sm:text-sm block">2. High BP</span>
-              </button>
-              <button 
-                type="button"
-                onClick={() => setSelectedNode(2)}
-                className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 2 ? 'bg-amber-950/40 border-amber-500 text-amber-300 ring-2 ring-amber-500/30' : 'bg-slate-950 border-slate-800 hover:border-amber-500/40 text-slate-400 hover:text-slate-200'}`}
-              >
-                <div className="w-3 h-3 rounded-full bg-amber-400 mb-2" />
-                <span className="font-bold text-xs sm:text-sm block">3. High Cholesterol</span>
-              </button>
-              <button 
-                type="button"
-                onClick={() => setSelectedNode(3)}
-                className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 3 ? 'bg-purple-950/40 border-purple-500 text-purple-300 ring-2 ring-purple-500/30' : 'bg-slate-950 border-slate-800 hover:border-purple-500/40 text-slate-400 hover:text-slate-200'}`}
-              >
-                <div className="w-3 h-3 rounded-full bg-purple-500 mb-2" />
-                <span className="font-bold text-xs sm:text-sm block">4. Heart Disease</span>
-              </button>
-              <button 
-                type="button"
-                onClick={() => setSelectedNode(4)}
-                className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === 4 ? 'bg-emerald-950/40 border-emerald-500 text-emerald-300 ring-2 ring-emerald-500/30' : 'bg-slate-950 border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-slate-200'}`}
-              >
-                <div className="w-3 h-3 rounded-full bg-emerald-500 mb-2" />
-                <span className="font-bold text-xs sm:text-sm block">5. Stroke History</span>
-              </button>
-            </div>
-
-            {/* Dynamic Information Panel */}
-            <div className={`p-6 border rounded-xl shadow-2xl transition-all duration-500 ${activeSankeyStyles.border} ${activeSankeyStyles.bg}`}>
-              <div className="flex flex-wrap items-center gap-3 mb-3">
-                <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${activeSankeyStyles.badge}`}>
-                  Active View Target
-                </span>
-                <h4 className="text-lg font-bold text-white">{sankeyDetails[selectedNode].title}</h4>
+              {/* 2. Educational Legend Card (Styled like Heatmap Legend) */}
+              <div className="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider">How to Trace the Alluvial Flow:</h5>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-rose-500 rounded flex-shrink-0" />
+                    <span className="text-slate-400"><strong>Source Node</strong> (Diabetes Base): Represents the foundational cohort of patients diagnosed with diabetes.</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-5 bg-slate-700/40 rounded border border-slate-600 flex-shrink-0 flex items-center justify-center text-[10px] text-slate-300 font-bold">~75%</div>
+                    <span className="text-slate-400"><strong>Flow Width</strong>: Indicates the absolute proportion of patients flowing into overlapping diagnoses.</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-purple-500 rounded flex-shrink-0" />
+                    <span className="text-slate-400"><strong>Target Nodes</strong>: Secondary clinical outcomes and micro/macrovascular complications.</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-slate-300 leading-relaxed text-sm">
-                {sankeyDetails[selectedNode].text}
-              </p>
-              <div className="mt-4 p-4 bg-slate-950/60 rounded-lg border border-slate-850">
-                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Biological Flow Insight</p>
-                <p className="text-slate-400 leading-relaxed text-xs">
-                  {sankeyDetails[selectedNode].clinical}
-                </p>
+
+              {/* 3. Interactive Tool Box (Styled like Heatmap Translator) */}
+              <div className="bg-slate-800/40 p-6 lg:p-8 border border-slate-700/50 rounded-xl w-full">
+                <div className="mb-6">
+                  <span className="text-xs font-black tracking-widest text-indigo-400 uppercase">Interactive Tool</span>
+                  <h4 className="text-xl font-bold text-white mt-1">Comorbidity Cohort Explorer</h4>
+                  <p className="text-sm text-slate-400 mt-2">Select a patient condition profile below to reveal clinical overlaps and systemic pathway insights.</p>
+                </div>
+
+                {/* Buttons Selector Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2 mb-8">
+                  {[
+                    { i: 0, c: 'rose', bg: 'bg-rose-500', t: '1. Diabetes Base' },
+                    { i: 1, c: 'sky', bg: 'bg-sky-400', t: '2. High BP' },
+                    { i: 2, c: 'amber', bg: 'bg-amber-400', t: '3. High Chol' },
+                    { i: 3, c: 'purple', bg: 'bg-purple-500', t: '4. Heart Disease' },
+                    { i: 4, c: 'emerald', bg: 'bg-emerald-500', t: '5. Stroke History' }
+                  ].map(card => (
+                    <button 
+                      key={card.i} 
+                      onClick={() => setSelectedNode(card.i)}
+                      className={`p-3 rounded-xl border text-left transition-all duration-300 ${selectedNode === card.i ? `bg-${card.c}-950/40 border-${card.c}-500 text-${card.c}-300 ring-2 ring-${card.c}-500/30` : `bg-slate-950 border-slate-800 hover:border-${card.c}-500/40 text-slate-400 hover:text-slate-200`}`}
+                    >
+                      <div className={`w-3 h-3 rounded-full ${card.bg} mb-2`} />
+                      <span className="font-bold text-xs sm:text-sm block">{card.t}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Selected Output Insight */}
+                <div className={`p-6 border rounded-xl shadow-2xl transition-all duration-500 ${activeSankeyStyles.border} ${activeSankeyStyles.bg}`}>
+                  <div className="flex flex-wrap items-center gap-3 mb-3">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${activeSankeyStyles.badge}`}>Active View Target</span>
+                    <h4 className="text-lg font-bold text-white">{sankeyDetails[selectedNode].title}</h4>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed text-sm">{sankeyDetails[selectedNode].text}</p>
+                  <div className="mt-4 p-4 bg-slate-950/60 rounded-lg border border-slate-850">
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Biological Flow Insight</p>
+                    <p className="text-slate-400 leading-relaxed text-xs">{sankeyDetails[selectedNode].clinical}</p>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <TakeawayBanner text="Diabetes acts as a massive metabolic gateway. Over 75% of diabetic individuals also battle chronic high blood pressure, tightly linking endocrine disease to cardiovascular failure." />
           </div>
 
-          {/* Part 3a Descriptor */}
+          {/* Sankey Deep Dive Description */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
               Diabetes rarely presents as an isolated diagnosis; it functions as a gateway to wider cardiovascular and cerebrovascular complications. This flow chart visualizes how these chronic pathologies overlap. Note the massive visual pathways connecting Diabetes directly to High Blood Pressure and High Cholesterol, highlighting why managing metabolic health requires addressing overall heart health.
             </p>
             <div>
               <button 
-                type="button"
                 onClick={() => setDeepDivePart3a(!deepDivePart3a)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
@@ -1033,94 +1047,141 @@ export default function App() {
             )}
           </div>
 
-          {/* SPLIT VIOLIN PLOT */}
+
+          {/* ================= VIOLIN PLOT SUB-SECTION ================= */}
           <div id="violins" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
-            
-            {/* Header Container: Splits title on left, controls and info button on the far right */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
-              <div className="space-y-1">
-                <h4 className="text-lg font-bold text-white mb-1">3.2 Continuous BMI Distributions vs. Self-Reported General Health</h4>
-                <p className="text-xs text-slate-400">
-                  Observe the full density of weights across general health levels (1 = Excellent, 5 = Poor).
-                </p>
+            <ChartInfoButton 
+              title="Violin Density Plots" 
+              text="A violin plot combines a traditional box plot with a kernel density estimation (KDE) curve. Wider sections represent where the highest concentration of patient BMIs fall. The white line tracks the calculated statistical mean." 
+            />
+            <div className="mb-6 pr-12 lg:pr-32">
+              <h3 className="text-xl font-bold text-white mb-1">Continuous BMI Distributions vs. Self-Reported General Health</h3>
+              <p className="text-sm text-slate-400">Observe the full density of weights across general health levels (1 = Excellent, 5 = Poor).</p>
+            </div>
+
+            <div className="flex flex-col gap-8">
+              {/* 1. Plot Container */}
+              <div className="w-full h-[400px]">
+                <Plot
+                  data={[
+                    ...[1, 2, 3, 4, 5].map((lvl, idx) => {
+                      const colors = ['#10b981', '#34d399', '#fbbf24', '#f97316', '#ef4444'];
+                      return {
+                        type: 'violin',
+                        y: processedData.violin[`gen${lvl}`],
+                        name: `Health Lvl ${lvl}`,
+                        points: false,
+                        box: { visible: true, width: 0.15, line: { color: '#ffffff' } },
+                        meanline: { visible: true, color: '#fbbf24', width: 2 },
+                        line: { color: colors[idx], width: 2 },
+                        hovertemplate: 'Health Rating: ' + lvl + '<br>BMI: %{y}<extra></extra>'
+                      };
+                    }),
+                    {
+                      type: 'scatter',
+                      mode: 'lines+markers',
+                      x: ['Health Lvl 1', 'Health Lvl 2', 'Health Lvl 3', 'Health Lvl 4', 'Health Lvl 5'],
+                      y: processedData.violinMeans,
+                      name: 'Average BMI Trend',
+                      line: { color: '#ffffff', width: 4, dash: 'solid' },
+                      marker: { size: 10, color: '#fbbf24', line: { color: '#ffffff', width: 2 } },
+                      hovertemplate: 'Average BMI: %{y:.1f}<extra></extra>'
+                    }
+                  ]}
+                  layout={{
+                    font: { color: '#94a3b8', size: 10 }, 
+                    paper_bgcolor: 'transparent', 
+                    plot_bgcolor: 'transparent',
+                    xaxis: { title: 'General Health Rating (1 = Excellent, 5 = Poor)', gridcolor: '#1e293b' },
+                    yaxis: { title: 'BMI (Body Mass Index)', gridcolor: '#1e293b', range: [10, 60] },
+                    showlegend: false, 
+                    autosize: true, 
+                    margin: { l: 50, r: 20, t: 15, b: 50 }
+                  }}
+                  useResizeHandler={true} 
+                  style={{ width: '100%', height: '100%' }}
+                />
               </div>
-              
-              {/* Upper Right Action Group */}
-              <div className="flex items-center gap-4 self-stretch lg:self-auto justify-between lg:justify-end">
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 w-full lg:w-72">
+
+              {/* 2. Educational Legend Card */}
+              <div className="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3 text-xs">
+                <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider">How to Interpret a Violin Plot:</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-slate-300 leading-relaxed">
+                      <strong>The Density Shape:</strong> The outer silhouette maps the continuous distribution (KDE) of patient weight records. A wider bulge indicates that a higher ratio of individuals within that category cluster at that exact BMI reading.
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-300 leading-relaxed">
+                      <strong>The Inner Anatomy:</strong> Each violin is bisected by a white box plot displaying quartiles, and an orange trendline tracking the clinical means. Watch how these shapes migrate into higher risk zones as general health ratings deteriorate.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Interactive Tool Box */}
+              <div className="bg-slate-800/40 p-6 lg:p-8 border border-slate-700/50 rounded-xl w-full">
+                <div className="mb-6">
+                  <span className="text-xs font-black tracking-widest text-indigo-400 uppercase">Interactive Tool</span>
+                  <h4 className="text-xl font-bold text-white mt-1">Somatic Stress & Mental Health Filters</h4>
+                  <p className="text-sm text-slate-400 mt-2">Adjust the minimum number of poor mental health days below to isolate and track somatic-metabolic distribution shifts.</p>
+                </div>
+
+                {/* Input Slider Container */}
+                <div className="bg-slate-950 p-5 rounded-xl border border-slate-800 w-full max-w-xl mb-6">
                   <label className="flex justify-between text-xs text-slate-300 font-bold mb-3">
                     <span>Minimum Bad Mental Health Days:</span>
-                    <span className="text-indigo-400">{mentalHealthDays} Days</span>
+                    <span className="text-indigo-400 text-sm">{mentalHealthDays} Days</span>
                   </label>
                   <input 
                     type="range" 
-                    min="0" max="30" 
+                    min="0" 
+                    max="30" 
                     value={mentalHealthDays} 
-                    onChange={(e) => setMentalHealthDays(parseInt(e.target.value, 10))} 
+                    onChange={(e) => setMentalHealthDays(parseInt(e.target.value))} 
                     className="w-full accent-indigo-500 cursor-pointer" 
                   />
                 </div>
-                <div className="shrink-0">
-                  <ChartInfoButton 
-                    title="Violin Density Plots" 
-                    text="A violin plot combines a traditional box plot with a kernel density estimation (KDE) curve. Wider sections represent where the highest concentration of patient BMIs fall. The white line tracks the calculated statistical mean." 
-                  />
+
+                {/* Analytical Bullets Panel (Parallel to Heatmap bullet styling) */}
+                <div className="space-y-4">
+                  <div className="flex gap-4 items-start bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                    <div>
+                      <span className="font-extrabold text-xs text-indigo-300 uppercase block mb-1">Baseline Insight:</span>
+                      <p className="text-sm text-slate-300 leading-relaxed">
+                        Excellent-health cohorts (Level 1) concentrate heavily within a healthy BMI window (20–25). Under poor health designations (Level 5), the distribution stretches and aggregates well into severe obese territories, displaying how objective clinical markers match subjective feelings.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-start bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                    <div>
+                      <span className="font-extrabold text-xs text-indigo-300 uppercase block mb-1">Psychosomatic Dynamic:</span>
+                      <p className="text-sm text-slate-300 leading-relaxed">
+                        {mentalHealthDays > 0 ? (
+                          <>Currently filtering for patients reporting at least <strong>{mentalHealthDays} poor mental health days</strong>. Notice how weight curves migrate higher, highlighting how chronic cognitive and neuro-emotional fatigue acts as a strong, systemic catalyst for physical metabolic dysfunction.</>
+                        ) : (
+                          <>Move the range slider above. Increasing the days tracks how mental strain and metabolic load feed into each other, illustrating why modern medicine views mental and physical metrics as tightly linked systems.</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Split Violin Plot */}
-            <div className="w-full h-[380px]">
-              <Plot
-                data={[
-                  ...[1, 2, 3, 4, 5].map((lvl, idx) => {
-                    const colors = ['#10b981', '#34d399', '#fbbf24', '#f97316', '#ef4444'];
-                    return {
-                      type: 'violin',
-                      y: processedData.violin[`gen${lvl}`],
-                      name: `Health Lvl ${lvl}`,
-                      points: false, // Clean up visual noise by hiding individual scatter points
-                      box: { visible: true, width: 0.15, line: { color: '#ffffff' } },
-                      meanline: { visible: true, color: '#fbbf24', width: 2 },
-                      line: { color: colors[idx], width: 2 },
-                      hovertemplate: 'Health Rating: ' + lvl + '<br>BMI: %{y}<extra></extra>'
-                    };
-                  }),
-                  {
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    x: ['Health Lvl 1', 'Health Lvl 2', 'Health Lvl 3', 'Health Lvl 4', 'Health Lvl 5'],
-                    y: processedData.violinMeans,
-                    name: 'Average BMI Trend',
-                    line: { color: '#ffffff', width: 4, dash: 'solid' },
-                    marker: { size: 10, color: '#fbbf24', line: { color: '#ffffff', width: 2 } },
-                    hovertemplate: 'Average BMI: %{y:.1f}<extra></extra>'
-                  }
-                ]}
-                layout={{
-                  font: { color: '#94a3b8', size: 9 },
-                  paper_bgcolor: 'transparent',
-                  plot_bgcolor: 'transparent',
-                  xaxis: { title: 'General Health Rating (1 = Excellent, 5 = Poor)', gridcolor: '#1e293b' },
-                  yaxis: { title: 'BMI (Body Mass Index)', gridcolor: '#1e293b', range: [10, 60] },
-                  showlegend: false,
-                  autosize: true,
-                  margin: { l: 50, r: 20, t: 15, b: 50 }
-                }}
-                useResizeHandler={true}
-                style={{ width: '100%', height: '100%' }}
-              />
-            </div>
+            <TakeawayBanner text="Objective physical measurements closely mirror subjective feelings. As the mass of the 'violin' bulges into obese BMI territories, patients consistently rate their general health as progressively worse." />
           </div>
 
-          {/* Part 3b Descriptor */}
-          <div className="space-y-4 max-w-4xl mt-6">
+          {/* Violin Deep Dive Description */}
+          <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
               Subjective well-being is often a strong reflection of our physical health. When viewing the BMI distribution across general health levels, it becomes clear that self-reported wellness and objective physiological weight metrics are closely connected. By sliding the mental health days input at the top, you can even explore how the accumulation of stressful or mentally poor days shifts these distributions further.
             </p>
             <div>
               <button 
-                type="button"
                 onClick={() => setDeepDivePart3b(!deepDivePart3b)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
@@ -1140,94 +1201,81 @@ export default function App() {
             )}
           </div>
 
-          {/* Decompressed Heatmap & Correlation Translator */}
+
+          {/* ================= HEATMAP SUB-SECTION ================= */}
           <div id="heatmap" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
-            
-            {/* Header Container: Splits title on left, info button on the far right */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-white mb-1">3.3 Systemic Connections Map</h3>
-                <p className="text-sm text-slate-400">An asymmetric heatmap of clinical and social relationships paired with an interpretation panel.</p>
-              </div>
-              <div className="shrink-0 self-start md:self-auto">
-                <ChartInfoButton 
-                  title="Pearson Correlation Matrix" 
-                  text="This matrix calculates Pearson correlation coefficients (r) between -1.0 and 1.0. We removed the mirrored upper diagonal to reduce visual noise. Deep blue indicates a strong positive link, while deep red indicates a strong inverse link." 
-                />
-              </div>
+            <ChartInfoButton 
+              title="Pearson Correlation Matrix" 
+              text="This matrix calculates Pearson correlation coefficients (r) between -1.0 and 1.0. We removed the mirrored upper diagonal to reduce visual noise. Deep blue indicates a strong positive link, while deep red indicates a strong inverse link." 
+            />
+            <div className="mb-6 pr-12 lg:pr-32">
+              <h3 className="text-xl font-bold text-white mb-1">Systemic Connections Map</h3>
+              <p className="text-sm text-slate-400">An asymmetric heatmap of clinical and social relationships.</p>
             </div>
 
-            {/* Changed to xl:grid-cols-2 and boosted the heatmap height to 600px to avoid compression */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+            <div className="flex flex-col gap-8">
+              {/* 1. Plot Container */}
+              <div className="w-full h-[550px] lg:h-[600px]">
+                <Plot 
+                  data={[{ 
+                    type: 'heatmap', 
+                    z: processedData.heatmap.z, 
+                    x: processedData.heatmap.labels, 
+                    y: processedData.heatmap.labels, 
+                    colorscale: 'RdBu', 
+                    zmin: -0.5, 
+                    zmax: 0.5, 
+                    reversescale: true, 
+                    showscale: true, 
+                    hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>' 
+                  }]} 
+                  layout={{ 
+                    font: { color: '#94a3b8', size: 11 }, 
+                    paper_bgcolor: 'transparent', 
+                    plot_bgcolor: 'transparent', 
+                    margin: { l: 150, r: 10, t: 20, b: 150 }, 
+                    xaxis: { tickangle: -45, automargin: true }, 
+                    yaxis: { autorange: 'reversed', automargin: true }, 
+                    autosize: true 
+                  }} 
+                  useResizeHandler={true} 
+                  style={{ width: '100%', height: '100%' }} 
+                />
+              </div>
               
-              {/* Asymmetric Heatmap */}
-              <div className="flex flex-col h-full w-full">
-                <div className="w-full h-[550px] lg:h-[650px]">
-                  <Plot 
-                    data={[{ 
-                      type: 'heatmap', 
-                      z: processedData.heatmap.z, 
-                      x: processedData.heatmap.labels, 
-                      y: processedData.heatmap.labels, 
-                      colorscale: 'RdBu', 
-                      zmin: -0.5, 
-                      zmax: 0.5, 
-                      reversescale: true,
-                      showscale: true,
-                      hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>'
-                    }]} 
-                    layout={{ 
-                      font: { color: '#94a3b8', size: 11 }, 
-                      paper_bgcolor: 'transparent', 
-                      plot_bgcolor: 'transparent', 
-                      margin: { l: 150, r: 10, t: 20, b: 150 }, 
-                      xaxis: { tickangle: -45, automargin: true, gridcolor: 'transparent' }, 
-                      yaxis: { autorange: 'reversed', automargin: true, gridcolor: 'transparent' }, 
-                      autosize: true 
-                    }} 
-                    useResizeHandler={true} 
-                    style={{ width: '100%', height: '100%' }} 
-                  />
-                </div>
-                
-                {/* Visual Legend specifically for heatmap interpretations */}
-                <div className="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
-                  <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider">How to Read the Color Mapping:</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-blue-600 rounded flex-shrink-0" />
-                      <span className="text-slate-400"><strong>Deep Blue</strong> (+0.25 to +1.00): Strong positive co-occurrence.</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-slate-100 rounded border border-slate-300 flex-shrink-0" />
-                      <span className="text-slate-400"><strong>White/Light</strong> (-0.10 to +0.10): Statistical independence.</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-red-600 rounded flex-shrink-0" />
-                      <span className="text-slate-400"><strong>Deep Red</strong> (-0.10 to -1.00): Strong inverse relationship.</span>
-                    </div>
+              {/* 2. Educational Legend Card */}
+              <div className="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider">How to Read the Color Mapping:</h5>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-blue-600 rounded flex-shrink-0" />
+                    <span className="text-slate-400"><strong>Deep Blue</strong> (+0.25 to +1.00): Strong positive co-occurrence.</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-slate-100 rounded border border-slate-300 flex-shrink-0" />
+                    <span className="text-slate-400"><strong>White/Light</strong> (-0.10 to +0.10): Statistical independence.</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-red-600 rounded flex-shrink-0" />
+                    <span className="text-slate-400"><strong>Deep Red</strong> (-0.10 to -1.00): Strong inverse relationship.</span>
                   </div>
                 </div>
               </div>
-
-              {/* Pairwise Translator Column */}
-              <div className="bg-slate-800/40 p-6 lg:p-8 border border-slate-700/50 rounded-xl flex flex-col justify-start w-full">
+              
+              {/* 3. Interactive Tool Box */}
+              <div className="bg-slate-800/40 p-6 lg:p-8 border border-slate-700/50 rounded-xl w-full">
                 <div className="mb-6">
                   <span className="text-xs font-black tracking-widest text-indigo-400 uppercase">Interactive Tool</span>
                   <h4 className="text-xl font-bold text-white mt-1">Correlation Translator</h4>
                   <p className="text-sm text-slate-400 mt-2">Select a key pair of variables below to translate mathematical patterns into clear clinical insights.</p>
                 </div>
-
                 <select 
                   value={translatorVar} 
-                  onChange={(e) => setTranslatorVar(e.target.value)}
+                  onChange={(e) => setTranslatorVar(e.target.value)} 
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-8 shadow-inner"
                 >
-                  {Object.keys(correlationTranslations).map(pair => (
-                    <option key={pair} value={pair}>{pair}</option>
-                  ))}
+                  {Object.keys(correlationTranslations).map(pair => <option key={pair} value={pair}>{pair}</option>)}
                 </select>
-
                 <div className="space-y-5">
                   {correlationTranslations[translatorVar].map((bullet, idx) => (
                     <div key={idx} className="flex gap-4 items-start bg-slate-900/50 p-4 rounded-xl border border-slate-800">
@@ -1239,17 +1287,16 @@ export default function App() {
               </div>
             </div>
 
-            <KeyInsightBanner text="Note the negative correlation (-0.37) between General Health and Annual Income: health is deeply bound up with economic security and resources." />
+            <TakeawayBanner text="Notice the deep red negative correlation (-0.37) between General Health and Annual Income. Health is deeply bound up with economic security; as resources decrease, subjective health ratings plummet." />
           </div>
 
-          {/* Part 3c Descriptor */}
+          {/* Heatmap Deep Dive Description */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
               Biological markers, socioeconomic backgrounds, and daily behaviors are all part of an interconnected system. This asymmetric heatmap simplifies these mathematical relationships, removing duplicate values to highlight key systemic correlations. Blue squares represent positive correlations, while red squares show negative links. Use the legend below the chart to interpret the intensity of the colors. Select any pair of variables in the Correlation Translator dropdown to view a real-world translation of how they interact.
             </p>
             <div>
               <button 
-                type="button"
                 onClick={() => setDeepDivePart3c(!deepDivePart3c)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
@@ -1268,6 +1315,7 @@ export default function App() {
               </div>
             )}
           </div>
+
         </section>
       </div>
     </div>
