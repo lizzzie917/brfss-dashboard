@@ -3,7 +3,7 @@ import Papa from 'papaparse';
 import Plot from 'react-plotly.js';
 import { 
   Activity, Info, HeartPulse, Users, 
-  Stethoscope, Brain
+  Stethoscope, Brain, ArrowUp, ChevronDown
 } from 'lucide-react';
 
 // --- ROBUST STATISTICAL MATH ENGINES ---
@@ -21,7 +21,6 @@ function getPearson(x, y) {
 }
 
 function calcOR(exposedDiabetic, exposedHealthy, unexposedDiabetic, unexposedHealthy) {
-  // Add 0.5 Laplace adjustment to prevent divide-by-zero errors in sparse slices
   const ed = exposedDiabetic + 0.5;
   const eh = exposedHealthy + 0.5;
   const ud = unexposedDiabetic + 0.5;
@@ -36,8 +35,8 @@ function calcOR(exposedDiabetic, exposedHealthy, unexposedDiabetic, unexposedHea
 
 // --- CATEGORICAL LABEL MAPPINGS ---
 const incomeLabels = [
-  'Under $10k', '$10k - $15k', '$15k - $20k', '$25k - $35k', 
-  '$35k - $50k', '$50k - $75k', '$75k or More'
+  'Under $10k', '$10k - $15k', '$15k - $20k', '$20k - $25k', 
+  '$25k - $35k', '$35k - $50k', '$50k - $75k', '$75k or More'
 ];
 const educationLabels = [
   'No School', 'Elementary', 'Some High School', 
@@ -51,7 +50,7 @@ const heatmapVariables = [
 
 const correlationTranslations = {
   'Diabetes Diagnosis & High Blood Pressure': [
-    "Vascular Double-Whammy: High blood pressure is the single strongest clinical correlate for diabetes in this dataset. This represents systemic vascular stress in action.",
+    "Vascular Connection: High blood pressure is the single strongest clinical correlate for diabetes in this dataset. This represents systemic vascular stress in action.",
     "Pathological Multiplier: Having both conditions exponentially multiplies individual risk of heart disease, kidney damage, and stroke compared to having just one.",
     "Integrated Treatment: Managing both together through lifestyle modifications and systemic medications is critical for long-term clinical health."
   ],
@@ -81,7 +80,7 @@ const correlationTranslations = {
 const InfoPopup = ({ title, text }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="relative inline-block ml-2">
+    <div className="relative inline-block ml-2 align-middle">
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="text-indigo-400 hover:text-indigo-300 transition flex items-center gap-1 text-sm bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20"
@@ -100,7 +99,7 @@ const InfoPopup = ({ title, text }) => {
 
 const PracticalInsightBanner = ({ text }) => (
   <div className="mt-4 p-4 bg-slate-800/50 border-l-4 border-indigo-500 rounded-r-lg text-slate-300 text-sm md:text-base leading-relaxed">
-    <span className="font-bold text-indigo-400 uppercase text-xs tracking-wider mr-2">Practical Insight:</span>
+    <span className="font-bold text-indigo-400 uppercase text-xs tracking-wider block mb-1">Practical Insight:</span>
     {text}
   </div>
 );
@@ -125,7 +124,7 @@ export default function App() {
   const [deepDivePart3b, setDeepDivePart3b] = useState(false);
   const [deepDivePart3c, setDeepDivePart3c] = useState(false);
 
-  // 8-Factor Calculator State
+  // 7-Factor Calculator State (Removed Heavy Drinking)
   const [calcRisks, setCalcRisks] = useState({
     bp: false,
     chol: false,
@@ -133,11 +132,13 @@ export default function App() {
     heart: false,
     stroke: false,
     noPhysAct: false,
-    heavyDrink: false,
     diffWalk: false
   });
 
   const toggleRisk = (key) => setCalcRisks(prev => ({ ...prev, [key]: !prev[key] }));
+
+  // Scroll to top functionality
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // 1. Data Ingestion
   useEffect(() => {
@@ -163,7 +164,7 @@ export default function App() {
     const eduStats = { 1:{t:0, d:0}, 2:{t:0, d:0}, 3:{t:0, d:0}, 4:{t:0, d:0}, 5:{t:0, d:0}, 6:{t:0, d:0} };
     const vars = { Diabetes: [], BP: [], Chol: [], BMI: [], Age: [], GenHlth: [], Income: [], Edu: [] };
     
-    // Tracking structures for 8 distinct Odds Ratios
+    // Tracking structures for distinct Odds Ratios
     const orTracks = {
       bp: { ed: 0, eh: 0, ud: 0, uh: 0 },
       chol: { ed: 0, eh: 0, ud: 0, uh: 0 },
@@ -171,12 +172,10 @@ export default function App() {
       heart: { ed: 0, eh: 0, ud: 0, uh: 0 },
       stroke: { ed: 0, eh: 0, ud: 0, uh: 0 },
       noPhysAct: { ed: 0, eh: 0, ud: 0, uh: 0 },
-      heavyDrink: { ed: 0, eh: 0, ud: 0, uh: 0 },
       diffWalk: { ed: 0, eh: 0, ud: 0, uh: 0 }
     };
 
     let d_bp = 0, d_chol = 0, d_heart = 0, d_stroke = 0;
-    
     const raincloudBMI = { gen1: [], gen2: [], gen3: [], gen4: [], gen5: [] };
     const raincloudAge = { gen1: [], gen2: [], gen3: [], gen4: [], gen5: [] };
 
@@ -219,13 +218,9 @@ export default function App() {
       vars.Income.push(row.Income); 
       vars.Edu.push(row.Education);
 
-      // Populate 8 distinct Odds Ratios matrices
       const fillTrack = (trackObj, flag) => {
-        if (flag) {
-          isDiabetic ? trackObj.ed++ : trackObj.eh++;
-        } else {
-          isDiabetic ? trackObj.ud++ : trackObj.uh++;
-        }
+        if (flag) { isDiabetic ? trackObj.ed++ : trackObj.eh++; } 
+        else { isDiabetic ? trackObj.ud++ : trackObj.uh++; }
       };
 
       fillTrack(orTracks.bp, row.HighBP === 1);
@@ -233,8 +228,7 @@ export default function App() {
       fillTrack(orTracks.smoker, row.Smoker === 1);
       fillTrack(orTracks.heart, row.HeartDiseaseorAttack === 1);
       fillTrack(orTracks.stroke, row.Stroke === 1);
-      fillTrack(orTracks.noPhysAct, row.PhysActivity === 0); // Inverted to measure inactivity
-      fillTrack(orTracks.heavyDrink, row.HvyAlcoholConsump === 1);
+      fillTrack(orTracks.noPhysAct, row.PhysActivity === 0);
       fillTrack(orTracks.diffWalk, row.DiffWalk === 1);
 
       if (isDiabetic) {
@@ -263,59 +257,63 @@ export default function App() {
       zMatrix.push(r);
     }
 
-    const raincloudBMIMeans = [1, 2, 3, 4, 5].map(lvl => {
-      const arr = raincloudBMI[`gen${lvl}`];
-      return arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
-    });
+    // Relative difference calculation for butterfly chart: ((Diabetic - Healthy) / Healthy) * 100
+    const calcRelativeDelta = (dCount, dTotal, hCount, hTotal) => {
+      const dRate = dTotal > 0 ? dCount / dTotal : 0;
+      const hRate = hTotal > 0 ? hCount / hTotal : 0;
+      return hRate > 0 ? ((dRate - hRate) / hRate) * 100 : 0;
+    };
 
-    const raincloudAgeMeans = [1, 2, 3, 4, 5].map(lvl => {
-      const arr = raincloudAge[`gen${lvl}`];
-      return arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
-    });
+    const riskFactorTitles = {
+      bp: 'High Blood Pressure',
+      chol: 'High Cholesterol',
+      smoker: 'Active Tobacco Smoker',
+      heart: 'Heart Disease History',
+      stroke: 'Prior Cerebrovascular Stroke',
+      noPhysAct: 'Sedentary Lifestyle',
+      diffWalk: 'Difficulty Walking'
+    };
+
+    const oddsResult = {
+      bp: { ...calcOR(orTracks.bp.ed, orTracks.bp.eh, orTracks.bp.ud, orTracks.bp.uh), title: riskFactorTitles.bp },
+      chol: { ...calcOR(orTracks.chol.ed, orTracks.chol.eh, orTracks.chol.ud, orTracks.chol.uh), title: riskFactorTitles.chol },
+      diffWalk: { ...calcOR(orTracks.diffWalk.ed, orTracks.diffWalk.eh, orTracks.diffWalk.ud, orTracks.diffWalk.uh), title: riskFactorTitles.diffWalk },
+      heart: { ...calcOR(orTracks.heart.ed, orTracks.heart.eh, orTracks.heart.ud, orTracks.heart.uh), title: riskFactorTitles.heart },
+      stroke: { ...calcOR(orTracks.stroke.ed, orTracks.stroke.eh, orTracks.stroke.ud, orTracks.stroke.uh), title: riskFactorTitles.stroke },
+      noPhysAct: { ...calcOR(orTracks.noPhysAct.ed, orTracks.noPhysAct.eh, orTracks.noPhysAct.ud, orTracks.noPhysAct.uh), title: riskFactorTitles.noPhysAct },
+      smoker: { ...calcOR(orTracks.smoker.ed, orTracks.smoker.eh, orTracks.smoker.ud, orTracks.smoker.uh), title: riskFactorTitles.smoker }
+    };
+
+    // Sort odds ratios descending for the Bar Chart
+    const sortedOddsArray = Object.entries(oddsResult).sort((a, b) => a[1].or - b[1].or); // Ascending order so Plotly displays largest at top
 
     return {
-      violin, raincloudBMI, raincloudAge, raincloudBMIMeans, raincloudAgeMeans,
+      raincloudBMI, raincloudAge, 
       heatmap: { z: zMatrix, labels: heatmapVariables },
       slope: {
-        incomeY: [1, 2, 3, 4, 5, 6, 7].map(l => calcPct(incomeStats[l].d, incomeStats[l].t)),
+        incomeY: [1, 2, 3, 4, 5, 6, 7, 8].map(l => calcPct(incomeStats[l].d, incomeStats[l].t)),
         eduY: [1, 2, 3, 4, 5, 6].map(l => calcPct(eduStats[l].d, eduStats[l].t))
       },
       butterfly: {
         diet: {
           labels: ['Physically Active', 'Eats Fruit Daily', 'Eats Vegetables Daily'],
-          healthy: [
-            calcPct(stats.healthy.physAct, stats.healthy.total),
-            calcPct(stats.healthy.fruits, stats.healthy.total),
-            calcPct(stats.healthy.veggies, stats.healthy.total)
-          ],
-          diabetic: [
-            calcPct(stats.diabetic.physAct, stats.diabetic.total),
-            calcPct(stats.diabetic.fruits, stats.diabetic.total),
-            calcPct(stats.diabetic.veggies, stats.diabetic.total)
+          deltas: [
+            calcRelativeDelta(stats.diabetic.physAct, stats.diabetic.total, stats.healthy.physAct, stats.healthy.total),
+            calcRelativeDelta(stats.diabetic.fruits, stats.diabetic.total, stats.healthy.fruits, stats.healthy.total),
+            calcRelativeDelta(stats.diabetic.veggies, stats.diabetic.total, stats.healthy.veggies, stats.healthy.total)
           ]
         },
         barriers: {
           labels: ['Difficulty Walking', 'Cannot Afford Doctor'],
-          healthy: [
-            calcPct(stats.healthy.diffWalk, stats.healthy.total),
-            calcPct(stats.healthy.noDoc, stats.healthy.total)
-          ],
-          diabetic: [
-            calcPct(stats.diabetic.diffWalk, stats.diabetic.total),
-            calcPct(stats.diabetic.noDoc, stats.diabetic.total)
+          deltas: [
+            calcRelativeDelta(stats.diabetic.diffWalk, stats.diabetic.total, stats.healthy.diffWalk, stats.healthy.total),
+            calcRelativeDelta(stats.diabetic.noDoc, stats.diabetic.total, stats.healthy.noDoc, stats.healthy.total)
           ]
         }
       },
-      odds: {
-        bp: calcOR(orTracks.bp.ed, orTracks.bp.eh, orTracks.bp.ud, orTracks.bp.uh),
-        chol: calcOR(orTracks.chol.ed, orTracks.chol.eh, orTracks.chol.ud, orTracks.chol.uh),
-        smoker: calcOR(orTracks.smoker.ed, orTracks.smoker.eh, orTracks.smoker.ud, orTracks.smoker.uh),
-        heart: calcOR(orTracks.heart.ed, orTracks.heart.eh, orTracks.heart.ud, orTracks.heart.uh),
-        stroke: calcOR(orTracks.stroke.ed, orTracks.stroke.eh, orTracks.stroke.ud, orTracks.stroke.uh),
-        noPhysAct: calcOR(orTracks.noPhysAct.ed, orTracks.noPhysAct.eh, orTracks.noPhysAct.ud, orTracks.noPhysAct.uh),
-        heavyDrink: calcOR(orTracks.heavyDrink.ed, orTracks.heavyDrink.eh, orTracks.heavyDrink.ud, orTracks.heavyDrink.uh),
-        diffWalk: calcOR(orTracks.diffWalk.ed, orTracks.diffWalk.eh, orTracks.diffWalk.ud, orTracks.diffWalk.uh)
-      },
+      odds: oddsResult,
+      sortedOddsX: sortedOddsArray.map(item => item[1].or),
+      sortedOddsY: sortedOddsArray.map(item => item[1].title),
       sankey: {
         nodes: ['Diabetes Diagnosis', 'High Blood Pressure', 'High Cholesterol', 'Heart Disease', 'Stroke'],
         links: { source: [0, 0, 0, 0], target: [1, 2, 3, 4], value: [d_bp, d_chol, d_heart, d_stroke] }
@@ -353,12 +351,12 @@ export default function App() {
 
   const activeSankeyStyles = useMemo(() => {
     switch (selectedNode) {
-      case 0: return { border: "border-rose-500/40", bg: "bg-rose-950/25", accent: "text-rose-400", badge: "bg-rose-500/20 text-rose-300", cardBg: "bg-rose-950/20 hover:bg-rose-900/30 border-rose-500/40" };
-      case 1: return { border: "border-sky-500/40", bg: "bg-sky-950/25", accent: "text-sky-400", badge: "bg-sky-500/20 text-sky-300", cardBg: "bg-sky-950/20 hover:bg-sky-900/30 border-sky-500/40" };
-      case 2: return { border: "border-amber-500/40", bg: "bg-amber-950/25", accent: "text-amber-400", badge: "bg-amber-500/20 text-amber-300", cardBg: "bg-amber-950/20 hover:bg-amber-900/30 border-amber-500/40" };
-      case 3: return { border: "border-purple-500/40", bg: "bg-purple-950/25", accent: "text-purple-400", badge: "bg-purple-500/20 text-purple-300", cardBg: "bg-purple-950/20 hover:bg-purple-900/30 border-purple-500/40" };
-      case 4: return { border: "border-emerald-500/40", bg: "bg-emerald-950/25", accent: "text-emerald-400", badge: "bg-emerald-500/20 text-emerald-300", cardBg: "bg-emerald-950/20 hover:bg-emerald-900/30 border-emerald-500/40" };
-      default: return { border: "border-slate-700", bg: "bg-slate-900/50", accent: "text-slate-200", badge: "bg-slate-800 text-slate-400", cardBg: "bg-slate-900/50 hover:bg-slate-800/50 border-slate-700" };
+      case 0: return { border: "border-rose-500/40", bg: "bg-rose-950/25", accent: "text-rose-400", badge: "bg-rose-500/20 text-rose-300" };
+      case 1: return { border: "border-sky-500/40", bg: "bg-sky-950/25", accent: "text-sky-400", badge: "bg-sky-500/20 text-sky-300" };
+      case 2: return { border: "border-amber-500/40", bg: "bg-amber-950/25", accent: "text-amber-400", badge: "bg-amber-500/20 text-amber-300" };
+      case 3: return { border: "border-purple-500/40", bg: "bg-purple-950/25", accent: "text-purple-400", badge: "bg-purple-500/20 text-purple-300" };
+      case 4: return { border: "border-emerald-500/40", bg: "bg-emerald-950/25", accent: "text-emerald-400", badge: "bg-emerald-500/20 text-emerald-300" };
+      default: return { border: "border-slate-700", bg: "bg-slate-900/50", accent: "text-slate-200", badge: "bg-slate-800 text-slate-400" };
     }
   }, [selectedNode]);
 
@@ -371,7 +369,7 @@ export default function App() {
     );
   }
 
-  // Live Multiplicative Risk Calculations for 8 factors
+  // Live Multiplicative Risk Calculations
   let cumulativeRisk = 1.0;
   if (calcRisks.bp) cumulativeRisk *= processedData.odds.bp.or;
   if (calcRisks.chol) cumulativeRisk *= processedData.odds.chol.or;
@@ -379,7 +377,6 @@ export default function App() {
   if (calcRisks.heart) cumulativeRisk *= processedData.odds.heart.or;
   if (calcRisks.stroke) cumulativeRisk *= processedData.odds.stroke.or;
   if (calcRisks.noPhysAct) cumulativeRisk *= processedData.odds.noPhysAct.or;
-  if (calcRisks.heavyDrink) cumulativeRisk *= processedData.odds.heavyDrink.or;
   if (calcRisks.diffWalk) cumulativeRisk *= processedData.odds.diffWalk.or;
 
   const maxRiskScale = 50.0; 
@@ -388,36 +385,93 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans overflow-y-auto scroll-smooth">
       
-      {/* premium sticky navigation bar */}
-      <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800 py-4 px-6 shadow-xl">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Activity className="text-indigo-500 animate-pulse" size={24} />
+      {/* Floating Go Back To Top Button */}
+      <button 
+        onClick={scrollToTop} 
+        className="fixed bottom-6 right-6 z-50 p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-2xl shadow-indigo-600/40 transition-transform transform hover:scale-110"
+        aria-label="Scroll to top"
+      >
+        <ArrowUp size={24} />
+      </button>
+
+      {/* STICKY NAVIGATION BAR WITH DROPDOWNS */}
+      <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800 py-3 px-6 shadow-xl">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={scrollToTop}>
+            <Activity className="text-indigo-500" size={24} />
             <span className="font-black text-white text-lg tracking-wider">DIABETES ANALYTICS</span>
           </div>
-          <div className="flex flex-wrap justify-center gap-6">
-            <a href="#part1" className="text-sm font-semibold text-slate-400 hover:text-indigo-400 transition-all">
-              Part 1: Personal Risk Factors & Multipliers
-            </a>
-            <a href="#part2" className="text-sm font-semibold text-slate-400 hover:text-indigo-400 transition-all">
-              Part 2: Socioeconomic Barriers & Wellness Disparities
-            </a>
-            <a href="#part3" className="text-sm font-semibold text-slate-400 hover:text-indigo-400 transition-all">
-              Part 3: Clinical Intersections & Chronic Comorbidities
-            </a>
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8 relative">
+            
+            {/* Nav Item 1 */}
+            <div className="group relative">
+              <a href="#part1" className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-indigo-400 transition-colors py-2">
+                Part 1: Patient Risk <ChevronDown size={14}/>
+              </a>
+              <div className="absolute hidden group-hover:block top-full left-0 mt-1 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50">
+                <a href="#calculator" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Interactive Calculator</a>
+                <a href="#barchart" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Clinical Risk Bar Chart</a>
+              </div>
+            </div>
+
+            {/* Nav Item 2 */}
+            <div className="group relative">
+              <a href="#part2" className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-indigo-400 transition-colors py-2">
+                Part 2: Socioeconomic <ChevronDown size={14}/>
+              </a>
+              <div className="absolute hidden group-hover:block top-full left-0 mt-1 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50">
+                <a href="#slopes" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Income & Education Slopes</a>
+                <a href="#butterfly" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Relative Disparities</a>
+              </div>
+            </div>
+
+            {/* Nav Item 3 */}
+            <div className="group relative">
+              <a href="#part3" className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-indigo-400 transition-colors py-2">
+                Part 3: Intersections <ChevronDown size={14}/>
+              </a>
+              <div className="absolute hidden group-hover:block top-full right-0 md:left-0 mt-1 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50">
+                <a href="#sankey" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Comorbidity Web</a>
+                <a href="#violin" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Physical Markers Distribution</a>
+                <a href="#heatmap" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Connections Map</a>
+              </div>
+            </div>
+
           </div>
         </div>
       </nav>
 
-      {/* header */}
-      <header className="max-w-4xl mx-auto pt-12 pb-6 px-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">National Diabetes Prevalence & Public Health Dashboard</h1>
-        <p className="text-lg text-slate-400 leading-relaxed max-w-3xl mx-auto">
-          Explore population health statistics mapped across 70,000 real patient health records. Interrogate demographic trends, behavioral determinants, and co-occurring chronic pathologies.
-        </p>
-        <div className="mt-6 inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-4 py-2.5 rounded-full text-xs font-semibold text-indigo-300 max-w-2xl">
-          <Brain size={14} className="flex-shrink-0" />
-          <span>Professional Note: Healthcare workers, policymakers, and quantitative analysts can click the "Professional Deep Dive" toggles beneath any section for advanced clinical parameters.</span>
+      {/* HEADER NARRATIVE */}
+      <header className="max-w-4xl mx-auto pt-14 pb-12 px-6 text-center">
+        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+          Mapping Diabetes Risk & Systemic Barriers
+        </h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 text-left text-sm">
+          <div className="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Technical Summary & Dataset Info</span>
+            <p className="text-slate-300 leading-relaxed">
+              This dashboard analyzes 70,000 anonymized health records extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) 2015 dataset. Using calculated statistical parameters, multi-dimensional stratification, and correlation matrices, we explore non-linear logistic markers, demographic discrepancies, and cardiovascular overlaps.
+            </p>
+            <a 
+              href="https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset?resource=download" 
+              target="_blank" 
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 mt-4 text-xs text-indigo-400 hover:text-indigo-300 font-bold underline"
+            >
+              Access Original Kaggle Source Dataset
+            </a>
+          </div>
+
+          <div className="bg-indigo-950/25 p-5 rounded-2xl border border-indigo-900/35">
+            <span className="text-xs font-bold text-indigo-300 uppercase tracking-widest block mb-2">Dashboard Objective</span>
+            <p className="text-indigo-200 leading-relaxed font-medium">
+              This interactive dashboard translates complex numbers from 70,000 real people into simple wellness stories. It is designed to show how our personal life situations (like household income and school access) combine with physical markers and common behaviors to shape our risk of developing diabetes.
+            </p>
+            <p className="text-indigo-300/80 text-xs mt-4 font-semibold italic">
+              Use the top navigation bar or scroll down to explore clinical indicators, societal structures, and chronic overlaps. Professionals can access detailed reports via "Professional Deep Dive" buttons.
+            </p>
+          </div>
         </div>
       </header>
 
@@ -427,14 +481,14 @@ export default function App() {
         <section id="part1" className="space-y-8 scroll-mt-20">
           <div className="border-b border-slate-800 pb-4 mb-8">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <HeartPulse className="text-rose-500" size={24} /> Part 1: Personal Risk Factors & Multipliers
+              <HeartPulse className="text-rose-500" size={24} /> Analyzing Patient Risk: Clinical Drivers of Diabetes
             </h2>
             <p className="text-slate-400 mt-2">Explore how standard demographic and physiological conditions mathematically multiply risks.</p>
           </div>
 
           <div className="space-y-6">
             {/* STACKED CALCULATOR */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden p-6 space-y-6">
+            <div id="calculator" className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden p-6 space-y-6 scroll-mt-24">
               <div>
                 <h3 className="text-xl font-bold text-white">Interactive Risk Multiplier</h3>
                 <p className="text-sm text-slate-400 mt-1">Select physiological indicators to observe how metabolic risk parameters compound against standard population baselines.</p>
@@ -449,7 +503,6 @@ export default function App() {
                     key === 'heart' ? 'Heart Disease History' :
                     key === 'stroke' ? 'Prior Cerebrovascular Stroke' :
                     key === 'noPhysAct' ? 'Sedentary Lifestyle (No Exercise)' :
-                    key === 'heavyDrink' ? 'Heavy Alcohol Consumption' :
                     'Difficulty Walking / Ambulation Obstacles';
 
                   const orVal = processedData.odds[key].or;
@@ -506,48 +559,29 @@ export default function App() {
               </div>
             </div>
 
-            {/* FOREST PLOT FOR PATHOLOGY COMPARISONS */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-6">
+            {/* BAR CHART FOR PATHOLOGY COMPARISONS */}
+            <div id="barchart" className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-6 scroll-mt-24">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-white">Pathology Impact Chart</h3>
-                  <p className="text-sm text-slate-400">Comparing individual clinical conditions against statistical likelihood of diabetes.</p>
+                  <p className="text-sm text-slate-400">Comparing individual clinical conditions against statistical likelihood of diabetes, ordered by severity.</p>
                 </div>
                 <InfoPopup 
                   title="Odds Ratios Explained" 
-                  text="An odds ratio measures association strength. A value of 1.0 (the red dotted line) represents no differences in risk. Markers plotted far to the right represent highly elevated risk factors."
+                  text="An odds ratio measures association strength. A value of 1.0 represents no differences in risk. Bars that extend further to the right represent highly elevated risk factors."
                 />
               </div>
 
-              <div className="w-full h-[380px]">
+              <div className="w-full h-[400px]">
                 <Plot
                   data={[{
-                    type: 'scatter', mode: 'markers',
-                    x: [
-                      processedData.odds.bp.or, processedData.odds.chol.or, processedData.odds.smoker.or, 
-                      processedData.odds.heart.or, processedData.odds.stroke.or, processedData.odds.noPhysAct.or,
-                      processedData.odds.heavyDrink.or, processedData.odds.diffWalk.or
-                    ],
-                    y: [
-                      'High Blood Pressure', 'High Cholesterol', 'Smoker', 
-                      'Heart Disease', 'Stroke History', 'Sedentary Lifestyle',
-                      'Heavy Drinking', 'Difficulty Walking'
-                    ],
-                    error_x: { 
-                      type: 'data', symmetric: true, 
-                      array: [
-                        processedData.odds.bp.error, processedData.odds.chol.error, processedData.odds.smoker.error, 
-                        processedData.odds.heart.error, processedData.odds.stroke.error, processedData.odds.noPhysAct.error,
-                        processedData.odds.heavyDrink.error, processedData.odds.diffWalk.error
-                      ], 
-                      color: '#818cf8', thickness: 2, width: 6 
-                    },
-                    marker: { size: 12, color: '#4f46e5' },
-                    text: [
-                      processedData.odds.bp.or.toFixed(2), processedData.odds.chol.or.toFixed(2), processedData.odds.smoker.or.toFixed(2), 
-                      processedData.odds.heart.or.toFixed(2), processedData.odds.stroke.or.toFixed(2), processedData.odds.noPhysAct.or.toFixed(2),
-                      processedData.odds.heavyDrink.or.toFixed(2), processedData.odds.diffWalk.or.toFixed(2)
-                    ],
+                    type: 'bar', 
+                    orientation: 'h',
+                    x: processedData.sortedOddsX,
+                    y: processedData.sortedOddsY,
+                    marker: { color: '#4f46e5' },
+                    text: processedData.sortedOddsX.map(val => val.toFixed(2) + 'x'),
+                    textposition: 'auto',
                     hovertemplate: '<b>%{y}</b><br>Multiplies risk by %{x:.2f}x<extra></extra>'
                   }]}
                   layout={{ 
@@ -555,9 +589,9 @@ export default function App() {
                     paper_bgcolor: 'transparent', 
                     plot_bgcolor: 'transparent', 
                     xaxis: { title: 'Risk Multiplier (Odds Ratio)', gridcolor: '#1e293b', autorange: true }, 
-                    yaxis: { gridcolor: 'transparent' }, 
+                    yaxis: { gridcolor: 'transparent', autorange: true }, 
                     shapes: [{ type: 'line', x0: 1, x1: 1, y0: -0.5, y1: 7.5, line: { color: '#f43f5e', dash: 'dash', width: 2 } }], 
-                    margin: { l: 180, r: 20, t: 20, b: 40 }, 
+                    margin: { l: 200, r: 20, t: 20, b: 40 }, 
                     autosize: true 
                   }}
                   useResizeHandler={true} style={{ width: '100%', height: '100%' }}
@@ -569,7 +603,7 @@ export default function App() {
           {/* Description & Professional Deep Dive Appender */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
-              Physiological risk metrics do not merely exist in silos; they compound. For individuals carrying multiple chronic markers, risk thresholds scale at a multiplicative rate. By clicking and combining different attributes in the risk selector above, you can observe how cumulative relative risk scales. In real-world data, carrying both high blood pressure and elevated cholesterol raises statistical likelihood metrics over tenfold compared to patients exhibiting clean baseline metrics.
+              Physiological risk metrics do not merely exist in silos; they compound. For individuals carrying multiple chronic markers, risk thresholds scale at a multiplicative rate. By clicking and combining different attributes in the risk selector above, you can observe how cumulative relative risk scales. As shown in the bar chart, high blood pressure and mobility limitations stand out as the largest drivers of diabetes risk in this dataset. When a patient carries both high blood pressure and elevated cholesterol, they are statistically over tenfold more likely to report a diabetes diagnosis compared to patients exhibiting clean baseline metrics.
             </p>
             <div>
               <button 
@@ -586,7 +620,7 @@ export default function App() {
                   <Stethoscope size={14} /> Clinical & Epidemiological Insights
                 </div>
                 <p className="text-slate-300 leading-relaxed text-sm">
-                  These relative odds are calculated using unadjusted odds ratios (OR) with standard Wald-test 95% confidence intervals. In the computed BRFSS sample, High Blood Pressure demonstrates an independent risk multiplier of over 5.0x, representing significant vascular systemic overlap. Intersecting pathologies like cardiovascular history, stroke history, and severe mobility limitations (difficulty walking) all sit well beyond the null line of 1.0. This underscores the biochemical pathways of advanced microvascular damage, where chronic circulatory distress acts as a clear prognostic marker for severe endocrine disorders.
+                  These relative odds are calculated using unadjusted odds ratios (OR) derived from the BRFSS cohort. High Blood Pressure demonstrates an independent risk multiplier of over 5.0x, representing massive vascular systemic overlap and endothelial dysfunction. Intersecting pathologies like cardiovascular history, stroke history, and severe mobility limitations all sit well beyond the null line of 1.0. This underscores the biochemical pathways of advanced microvascular damage, where chronic circulatory distress acts as a clear prognostic marker for severe endocrine disorders.
                 </p>
               </div>
             )}
@@ -597,20 +631,19 @@ export default function App() {
         <section id="part2" className="space-y-8 scroll-mt-20">
           <div className="border-b border-slate-800 pb-4 mt-16 mb-8">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Users className="text-amber-500" size={24} /> Part 2: Socioeconomic Barriers & Wellness Disparities
+              <Users className="text-amber-500" size={24} /> Social Stratification: Income, Education, and Access
             </h2>
             <p className="text-slate-400 mt-2">Investigate how household income scales and educational achievement act as systemic buffers for metabolic health.</p>
           </div>
 
           {/* Slopes Graph with True Autoscaling */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full">
+          <div id="slopes" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
               <div>
                 <h3 className="text-xl font-bold text-white mb-1">Socioeconomic Disparities</h3>
-                <p className="text-sm text-slate-400">Diabetes prevalence mapped against distinct structural variables.</p>
+                <p className="text-sm text-slate-400">Toggle between Annual Income Bracket and Education Level by clicking the buttons to the right.</p>
               </div>
               
-              {/* Noticeable Toggle Switches */}
               <div className="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
                 <button 
                   onClick={() => setSlopeView('income')} 
@@ -677,7 +710,7 @@ export default function App() {
           {/* Part 2a Descriptor */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
-              Health outcomes track directly along financial and educational lines. As resource parameters increase, metabolic disease rates decline. This pattern illustrates how socioeconomic factors act as a systemic protective mechanism, improving access to preventative medicine and nutrient-dense foods. <strong className="text-indigo-400">Toggle between Annual Income Bracket and Education Level by clicking the buttons to the right</strong> of the chart header to inspect these distinct social pathways.
+              Health outcomes track directly along financial and educational lines. When observing the income slope, individuals in households earning <strong>Under $10k</strong> experience diabetes rates approaching 40%. This rate drops substantially as we cross the median income threshold (<strong>$35k - $50k</strong>), eventually bottoming out near 15% for those earning <strong>$75k or More</strong>. Similarly, individuals with <strong>No School</strong> or only elementary education face peak diabetic prevalence, whereas those who are <strong>College Graduates</strong> experience drastically lower rates. As resource parameters increase, metabolic disease rates decline. This pattern illustrates how socioeconomic factors act as a systemic protective mechanism, improving access to preventative medicine and nutrient-dense foods. 
             </p>
             <div>
               <button 
@@ -694,18 +727,18 @@ export default function App() {
                   <Stethoscope size={14} /> Structural & Epidemiological Insights
                 </div>
                 <p className="text-slate-300 leading-relaxed text-sm">
-                  This negative slope showcases a strong social gradient in health. In the income slice, diabetes prevalence drops from ~36% to ~14% as household income rises. This is not purely biological; it represents systemic disparities in food security and environmental stress. Lower socioeconomic status maps directly to hyper-segregated 'food deserts' with limited access to fresh, unprocessed ingredients, along with increased rates of baseline stress-induced cortisol release that can compound insulin resistance.
+                  This negative slope showcases a strong social gradient in health. This is not purely biological; it represents systemic disparities in food security and environmental stress. Lower socioeconomic status maps directly to hyper-segregated 'food deserts' with limited access to fresh, unprocessed ingredients, along with increased rates of baseline stress-induced cortisol release that can compound insulin resistance. Educational attainment serves as an excellent proxy for both health literacy and eventual occupational capacity, shielding patients from precarious physical labor and unstable healthcare access.
                 </p>
               </div>
             )}
           </div>
 
-          {/* Butterfly Chart using Cohort-Proportional Percentages */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full">
+          {/* Butterfly Chart using Relative Percentage Delta */}
+          <div id="butterfly" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">Behavioral Rates & Care Barriers</h3>
-                <p className="text-sm text-slate-400">Proportional rates within each specific cohort: Healthy (Green) vs. Diabetic (Red).</p>
+                <h3 className="text-xl font-bold text-white mb-1">Behavioral Rates & Care Barriers (Relative Disparity)</h3>
+                <p className="text-sm text-slate-400">Toggle between Diet & Exercise and Systemic Barriers by clicking the buttons to the right.</p>
               </div>
               <div className="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
                 <button 
@@ -722,62 +755,53 @@ export default function App() {
                 </button>
               </div>
             </div>
+            
+            {/* The actual Butterfly Chart plotting relative deltas */}
             <div className="w-full h-[350px]">
               <Plot
-                data={[
-                  { 
-                    type: 'bar', 
-                    x: processedData.butterfly[butterflyView].healthy.map(v => -v), 
-                    y: processedData.butterfly[butterflyView].labels, 
-                    orientation: 'h', 
-                    name: 'Non-Diabetic Population (%)', 
-                    marker: { color: '#10b981' }, 
-                    customdata: processedData.butterfly[butterflyView].healthy, 
-                    hovertemplate: '%{y} (Healthy Cohort)<br>Proportion: %{customdata:.1f}%<extra></extra>' 
+                data={[{ 
+                  type: 'bar', 
+                  x: processedData.butterfly[butterflyView].deltas, 
+                  y: processedData.butterfly[butterflyView].labels, 
+                  orientation: 'h', 
+                  marker: { 
+                    color: processedData.butterfly[butterflyView].deltas.map(val => val < 0 ? '#10b981' : '#f43f5e') 
                   },
-                  { 
-                    type: 'bar', 
-                    x: processedData.butterfly[butterflyView].diabetic, 
-                    y: processedData.butterfly[butterflyView].labels, 
-                    orientation: 'h', 
-                    name: 'Diabetic Population (%)', 
-                    marker: { color: '#f43f5e' }, 
-                    hovertemplate: '%{y} (Diabetic Cohort)<br>Proportion: %{x:.1f}%<extra></extra>' 
-                  }
-                ]}
+                  hovertemplate: '<b>%{y}</b><br>Difference from Healthy Base: %{x:.1f}%<extra></extra>' 
+                }]}
                 layout={{ 
-                  barmode: 'relative', 
                   font: { color: '#94a3b8' }, 
                   paper_bgcolor: 'transparent', 
                   plot_bgcolor: 'transparent', 
-                  margin: { l: 180, r: 20, t: 20, b: 40 }, 
+                  margin: { l: 220, r: 20, t: 20, b: 40 }, 
                   xaxis: { 
-                    range: [-100, 100], 
-                    tickvals: [-100, -75, -50, -25, 0, 25, 50, 75, 100], 
-                    ticktext: ['100%', '75%', '50%', '25%', '0%', '25%', '50%', '75%', '100%'], 
-                    gridcolor: '#1e293b' 
+                    title: 'Relative Difference vs. Healthy Baseline (%)',
+                    gridcolor: '#1e293b',
+                    autorange: true 
                   }, 
-                  yaxis: { gridcolor: 'transparent' }, 
+                  yaxis: { gridcolor: 'transparent' },
+                  shapes: [{ type: 'line', x0: 0, x1: 0, y0: -0.5, y1: 2.5, line: { color: '#94a3b8', width: 2 } }],
                   autosize: true 
                 }}
                 useResizeHandler={true} style={{ width: '100%', height: '100%' }}
               />
             </div>
+            
             <PracticalInsightBanner text={butterflyView === 'diet' ? 
-              "While regular dietary intake of fruits and vegetables shows only small percentage differences, physical exercise levels are substantially lower among diabetic patients."
-              : "Structural health disparities are clear: patients with diabetes are more than three times as likely to report difficulty walking and face higher cost barriers to basic physician access."} 
+              "While regular dietary intake of fruits and vegetables shows only small relative declines (around -10% to -15%), physical activity levels reveal a severe drop-off (over -20% decline) among diabetic populations."
+              : "Structural health disparities are alarming: patients with diabetes experience a massive +250% relative increase in walking difficulties and a steep relative increase in avoiding medical care due to costs."} 
             />
           </div>
 
           {/* Part 2b Descriptor */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
-              While daily wellness behaviors like vegetable consumption are important for physical health, structural barriers are often the primary challenge. When comparing populations, individuals living with diabetes report high rates of daily physical and economic obstacles. They are three times more likely to experience severe mobility limitations (difficulty walking or climbing stairs) and frequently miss scheduled medical consultations due to care costs. <strong className="text-indigo-400">Toggle between Diet & Exercise and Systemic Barriers by clicking the buttons to the right</strong> to compare behavior patterns against financial and physical obstacles.
+              To truly understand disparities, we must look at how much more frequently diabetics face certain obstacles compared to healthy individuals. This chart displays the <strong>relative percentage difference</strong> from the healthy baseline. For instance, while vegetable and fruit consumption drops mildly among those with diabetes, physical activity is significantly diminished. The true shock lies in the structural barriers: individuals living with diabetes report an astonishing relative increase (over 200%) in experiencing severe difficulty walking or climbing stairs, and a substantial spike in being unable to afford doctor visits when they need them.
             </p>
             <div>
               <button 
                 onClick={() => setDeepDivePart2b(!deepDivePart2b)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md shadow-indigo-500/5"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
                 <Brain size={16} /> 
                 {deepDivePart2b ? 'Hide Clinical Deep Dive' : 'Professional Deep Dive'}
@@ -789,7 +813,7 @@ export default function App() {
                   <Stethoscope size={14} /> Healthcare Policy & Access Analysis
                 </div>
                 <p className="text-slate-300 leading-relaxed text-sm">
-                  This proportional comparison indicates that behavioral metrics (such as fruit and vegetable intake) vary less between cohorts than structural parameters. Approximately 38% of the diabetic population reports difficulty walking compared to only 11% of the non-diabetic cohort. Crucially, the cost barrier is elevated. This creates a challenging feedback loop: metabolic dysfunction requires frequent medical surveillance, but high care costs prevent regular access to primary physicians, increasing the risk of untreated vascular and renal complications.
+                  By tracking the relative delta (Diabetic Cohort / Healthy Cohort - 1), we see that behavioral nutrition choices (fruit and veg consumption) diverge less dramatically than physical and systemic variables. The exponential spike in ambulatory difficulty reflects advanced peripheral neuropathy, joint stress from elevated BMI, and generalized fatigue. Furthermore, the steep rise in healthcare cost barriers highlights a critical failure in systemic care delivery: the patients who require the most intensive and regular metabolic surveillance are statistically the most likely to skip appointments due to out-of-pocket expenses, ensuring worse longitudinal outcomes.
                 </p>
               </div>
             )}
@@ -800,17 +824,17 @@ export default function App() {
         <section id="part3" className="space-y-8 scroll-mt-20">
           <div className="border-b border-slate-800 pb-4 mt-16 mb-8">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Stethoscope className="text-blue-500" size={24} /> Part 3: Clinical Intersections & Chronic Comorbidities
+              <Stethoscope className="text-blue-500" size={24} /> Intersecting Conditions & Subjective Wellness
             </h2>
             <p className="text-slate-400 mt-2">Examine how biological markers, cardiovascular disease pathways, and mental health indicators intersect.</p>
           </div>
 
           {/* Sankey Flow Visual with Interactive Navigation Cards */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full space-y-6">
+          <div id="sankey" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full space-y-6 scroll-mt-24">
             <div>
               <h3 className="text-xl font-bold text-white">The Web of Chronic Conditions</h3>
               <p className="text-sm text-slate-400 mt-1">
-                Visualizing how diabetes maps onto secondary cardiovascular and cerebrovascular complications. Use the colored selection cards below the diagram to view detailed clinical profiles.
+                Visualizing how diabetes maps onto secondary cardiovascular complications. Use the colored selection cards below the diagram to view detailed clinical profiles.
               </p>
             </div>
 
@@ -826,7 +850,7 @@ export default function App() {
               />
             </div>
 
-            {/* FAILSAFE NAVIGATION CARDS (Color Coded to match Sankey Nodes) */}
+            {/* NAVIGATION CARDS (Color Coded to match Sankey Nodes) */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
               <button 
                 onClick={() => setSelectedNode(0)}
@@ -893,7 +917,7 @@ export default function App() {
             <div>
               <button 
                 onClick={() => setDeepDivePart3a(!deepDivePart3a)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md shadow-indigo-500/5"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
                 <Brain size={16} /> 
                 {deepDivePart3a ? 'Hide Clinical Deep Dive' : 'Professional Deep Dive'}
@@ -911,11 +935,11 @@ export default function App() {
             )}
           </div>
 
-          {/* Violin Density Plot with Full Autoscaling */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full">
+          {/* Violin Density Plot with Full Autoscaling (NO raincloud points) */}
+          <div id="violin" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">Subjective Wellness vs. Physical Markers</h3>
+                <h3 className="text-xl font-bold text-white mb-1">Subjective Wellness Distributions</h3>
                 <p className="text-sm text-slate-400">Distribution shapes grouped by self-reported health rating (1 = Excellent, 5 = Poor).</p>
               </div>
               
@@ -954,12 +978,9 @@ export default function App() {
                       x: Array(activeRaincloud[`gen${lvl}`].length).fill(`Level ${lvl}`), 
                       y: activeRaincloud[`gen${lvl}`],
                       name: `Health Level ${lvl}`, 
-                      points: 'all', 
-                      pointpos: -0.5, 
-                      jitter: 0.7, 
-                      side: 'positive',
+                      points: false, // Ensures pure violin shape (no scatter points)
+                      side: 'both',
                       line: { color: colors[idx], width: 2 }, 
-                      marker: { size: 3, opacity: 0.3, color: '#94a3b8' }, 
                       meanline: { visible: true, width: 4, color: '#ffffff' }, 
                       hovertemplate: violinMetric === 'BMI' 
                         ? 'Self Rating: Level ' + lvl + '<br>BMI: %{y}<extra></extra>'
@@ -987,7 +1008,7 @@ export default function App() {
                   yaxis: { 
                     title: violinMetric === 'BMI' ? 'BMI (Body Mass Index)' : 'Age Bracket (1 = 18-24, 13 = 80+)', 
                     gridcolor: '#1e293b', 
-                    autorange: true, // Clean autoscaling on load
+                    autorange: true,
                     ...(violinMetric === 'Age' ? {
                       tickvals: [1, 3, 5, 7, 9, 11, 13],
                       ticktext: ['18-24', '30-34', '40-44', '50-54', '60-64', '70-74', '80+']
@@ -1001,20 +1022,21 @@ export default function App() {
               />
             </div>
             <PracticalInsightBanner text={violinMetric === 'BMI' ? 
-              "A clear upward trend: as subjective health ratings decline, average BMI climbs from 26.2 to 32.4 (moving from overweight into obese ranges)."
-              : "Age acts as a progressive burden: older age brackets are heavily concentrated in self-reported health levels 4 and 5."} 
+              "A clear upward trend: as subjective health ratings decline, average BMI climbs progressively, with the widest bulges appearing in obese ranges for Level 4 and Level 5."
+              : "Age acts as a progressive burden: older age brackets (levels 9-13, representing ages 60+) are heavily concentrated in self-reported health levels 4 and 5."} 
             />
           </div>
 
           {/* Part 3b Descriptor */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
-              Subjective well-being is often a strong reflection of our physical health. This violin plot groups patients by their self-reported health rating (from Level 1/Excellent to Level 5/Poor) and maps their BMI or Age. For individuals reporting poor health (Level 5), the distribution bulges much higher, showing weight clustering in obese territory. Adjust the mental health slider to see how these distributions shift as chronic stress indicators rise.
+              Subjective well-being is often a strong reflection of our physical health. This violin plot groups patients by their self-reported health rating (from Level 1/Excellent to Level 5/Poor). The thickness of the shape shows where the majority of patients sit. When examining the <strong>BMI parameter</strong>, you can clearly see that for those reporting 'Excellent' health (Level 1), the body weight is concentrated heavily around the healthy mid-20s. However, for those reporting 'Poor' health (Level 5), the shape bulges much higher, showing massive weight clustering in the obese territory (BMIs of 30-40). <br/><br/>
+              When toggling to the <strong>Age parameter</strong>, we see that aging predictably drags subjective health downward. In Level 1 (Excellent), the thickest part of the distribution belongs to young adults (18-24). In Level 5 (Poor), the thickest cluster sits in the 60-75 age brackets. Try adjusting the mental health slider to see how these distributions shift as chronic stress indicators rise.
             </p>
             <div>
               <button 
                 onClick={() => setDeepDivePart3b(!deepDivePart3b)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md shadow-indigo-500/5"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
                 <Brain size={16} /> 
                 {deepDivePart3b ? 'Hide Clinical Deep Dive' : 'Professional Deep Dive'}
@@ -1026,14 +1048,14 @@ export default function App() {
                   <Stethoscope size={14} /> Neuropsychiatric & Somatic Analysis
                 </div>
                 <p className="text-slate-300 leading-relaxed text-sm">
-                  This plot maps subjective health ratings against objective physical metrics. The trendline displays a significant increase in mean BMI, moving from 26.2 in Level 1 up to 32.4 in Level 5. When filtering for mental health distress using the slider, we observe an upward shift in density distributions within the lower health levels. This highlights the bi-directional relationships of metabolic and neuropsychiatric health, where chronic psychological stress promotes visceral lipid storage and worsens subjective somatic wellness.
+                  This plot maps subjective health ratings against objective physical metrics via kernel density estimation. The white trendline displays a significant increase in mean BMI, moving from 26.2 in Level 1 up to 32.4 in Level 5. When filtering for mental health distress using the slider, we observe an upward shift in density distributions within the lower health levels. This highlights the bi-directional relationships of metabolic and neuropsychiatric health, where chronic psychological stress promotes visceral lipid storage and worsens subjective somatic wellness.
                 </p>
               </div>
             )}
           </div>
 
           {/* Heatmap & Correlation Translator */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full">
+          <div id="heatmap" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-xl font-bold text-white mb-1">Systemic Connections Map</h3>
@@ -1047,32 +1069,53 @@ export default function App() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Asymmetric Heatmap */}
-              <div className="lg:col-span-7 h-[450px]">
-                <Plot 
-                  data={[{ 
-                    type: 'heatmap', 
-                    z: processedData.heatmap.z, 
-                    x: processedData.heatmap.labels, 
-                    y: processedData.heatmap.labels, 
-                    colorscale: 'RdBu', 
-                    zmin: -0.5, 
-                    zmax: 0.5, 
-                    reversescale: true,
-                    showscale: true,
-                    hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>'
-                  }]} 
-                  layout={{ 
-                    font: { color: '#94a3b8', size: 10 }, 
-                    paper_bgcolor: 'transparent', 
-                    plot_bgcolor: 'transparent', 
-                    margin: { l: 140, r: 10, t: 10, b: 120 }, 
-                    xaxis: { tickangle: -45, automargin: true, gridcolor: 'transparent' }, 
-                    yaxis: { autorange: 'reversed', automargin: true, gridcolor: 'transparent' }, 
-                    autosize: true 
-                  }} 
-                  useResizeHandler={true} 
-                  style={{ width: '100%', height: '100%' }} 
-                />
+              <div className="lg:col-span-7 flex flex-col h-full">
+                <div className="h-[400px]">
+                  <Plot 
+                    data={[{ 
+                      type: 'heatmap', 
+                      z: processedData.heatmap.z, 
+                      x: processedData.heatmap.labels, 
+                      y: processedData.heatmap.labels, 
+                      colorscale: 'RdBu', 
+                      zmin: -0.5, 
+                      zmax: 0.5, 
+                      reversescale: true,
+                      showscale: true,
+                      hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>'
+                    }]} 
+                    layout={{ 
+                      font: { color: '#94a3b8', size: 10 }, 
+                      paper_bgcolor: 'transparent', 
+                      plot_bgcolor: 'transparent', 
+                      margin: { l: 140, r: 10, t: 10, b: 120 }, 
+                      xaxis: { tickangle: -45, automargin: true, gridcolor: 'transparent' }, 
+                      yaxis: { autorange: 'reversed', automargin: true, gridcolor: 'transparent' }, 
+                      autosize: true 
+                    }} 
+                    useResizeHandler={true} 
+                    style={{ width: '100%', height: '100%' }} 
+                  />
+                </div>
+                
+                {/* Visual Legend specifically for heatmap interpretations */}
+                <div className="mt-2 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                  <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider">How to Read the Color Mapping:</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-blue-600 rounded flex-shrink-0" />
+                      <span className="text-slate-400"><strong>Deep Blue</strong> (+0.25 to +1.00): Strong positive co-occurrence (conditions that rise together).</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-slate-100 rounded border border-slate-300 flex-shrink-0" />
+                      <span className="text-slate-400"><strong>White/Light</strong> (-0.10 to +0.10): Statistical independence (no direct connection).</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-red-600 rounded flex-shrink-0" />
+                      <span className="text-slate-400"><strong>Deep Red</strong> (-0.10 to -1.00): Strong inverse relationship (one rises, the other falls).</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Pairwise Translator Column */}
@@ -1110,12 +1153,12 @@ export default function App() {
           {/* Part 3c Descriptor */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
-              Biological markers, socioeconomic backgrounds, and daily behaviors are all part of an interconnected system. This asymmetric heatmap simplifies these mathematical relationships, removing duplicate values to highlight key systemic correlations. Blue squares represent positive correlations, while red squares show negative links. Select any pair of variables in the Correlation Translator dropdown to view a real-world translation of how they interact.
+              Biological markers, socioeconomic backgrounds, and daily behaviors are all part of an interconnected system. This asymmetric heatmap simplifies these mathematical relationships, removing duplicate values to highlight key systemic correlations. Blue squares represent positive correlations, while red squares show negative links. Use the legend below the chart to interpret the intensity of the colors. Select any pair of variables in the Correlation Translator dropdown to view a real-world translation of how they interact.
             </p>
             <div>
               <button 
                 onClick={() => setDeepDivePart3c(!deepDivePart3c)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md shadow-indigo-500/5"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
                 <Brain size={16} /> 
                 {deepDivePart3c ? 'Hide Clinical Deep Dive' : 'Professional Deep Dive'}
