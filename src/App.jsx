@@ -3,7 +3,12 @@ import Papa from 'papaparse';
 import Plot from 'react-plotly.js';
 import { 
   Activity, Info, HeartPulse, Users, 
-  Stethoscope, Brain, ArrowUp, ChevronDown, ShieldAlert
+  Stethoscope, Brain, ArrowUp, ChevronDown, ShieldAlert,
+  TrendingUp, 
+  Heart, 
+  ShieldAlert, 
+  Compass, 
+  Map
 } from 'lucide-react';
 
 // --- ROBUST STATISTICAL MATH ENGINES ---
