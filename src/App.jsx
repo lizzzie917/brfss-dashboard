@@ -491,7 +491,7 @@ export default function App() {
       {/* HEADER NARRATIVE */}
       <header className="max-w-4xl mx-auto pt-14 pb-12 px-6 text-center">
         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
-          Mapping Diabetes Risk & Systemic Barriers
+          Mapping Diabetes Risk & <br /> Systemic Barriers
         </h1>
         
         <div className="mt-8 text-left text-sm max-w-2xl mx-auto">
@@ -1266,7 +1266,7 @@ export default function App() {
 
           {/* ================= SIMPLIFIED FINAL SUMMARY ================= */}
           <div className="mt-12 p-8 bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-850 rounded-2xl shadow-xl">
-            <h3 className="text-lg font-bold text-white mb-2">Dashboard Summary</h3>
+            <h3 className="text-lg font-bold text-white mb-2">The Big Picture</h3>
             <p className="text-slate-300 leading-relaxed text-sm md:text-base">
               Ultimately, this dashboard demonstrates that diabetes is far more than an isolated clinical metric. By mapping the experiences of over 70,000 individuals across three distinct lenses, we see a clear picture: physical vulnerabilities (like high blood pressure and elevated BMI) do not exist in a vacuum. Instead, they compound exponentially alongside steep socioeconomic gradients and structural barriers, such as mobility limitations and healthcare costs. True systemic wellness requires looking beyond individual biology to address the intersecting financial, environmental, and physical factors that shape metabolic health.
             </p>
