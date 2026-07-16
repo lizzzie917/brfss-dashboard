@@ -113,10 +113,10 @@ export default function App() {
   const [slopeView, setSlopeView] = useState('income');
   const [translatorVar, setTranslatorVar] = useState('Diabetes Diagnosis & High Blood Pressure');
   const [mentalHealthDays, setMentalHealthDays] = useState(0);
-  const [violinMetric, setViolinMetric] = useState('BMI'); 
   const [selectedNode, setSelectedNode] = useState(0); 
 
   // Deep Dive Collapses
+  const [deepDiveIntro, setDeepDiveIntro] = useState(false);
   const [deepDivePart1, setDeepDivePart1] = useState(false);
   const [deepDivePart2a, setDeepDivePart2a] = useState(false);
   const [deepDivePart2b, setDeepDivePart2b] = useState(false);
@@ -124,7 +124,7 @@ export default function App() {
   const [deepDivePart3b, setDeepDivePart3b] = useState(false);
   const [deepDivePart3c, setDeepDivePart3c] = useState(false);
 
-  // 7-Factor Calculator State (Removed Heavy Drinking)
+  // 7-Factor Calculator State (No Heavy Drinking)
   const [calcRisks, setCalcRisks] = useState({
     bp: false,
     chol: false,
@@ -155,7 +155,6 @@ export default function App() {
   const processedData = useMemo(() => {
     if (dataset.length === 0) return null;
 
-    const violin = { hBMI: [], hAge: [], dBMI: [], dAge: [] };
     const stats = {
       healthy: { total: 0, smoker: 0, physAct: 0, fruits: 0, veggies: 0, noDoc: 0, diffWalk: 0 },
       diabetic: { total: 0, smoker: 0, physAct: 0, fruits: 0, veggies: 0, noDoc: 0, diffWalk: 0 }
@@ -176,11 +175,12 @@ export default function App() {
     };
 
     let d_bp = 0, d_chol = 0, d_heart = 0, d_stroke = 0;
-    const raincloudBMI = { gen1: [], gen2: [], gen3: [], gen4: [], gen5: [] };
-    const raincloudAge = { gen1: [], gen2: [], gen3: [], gen4: [], gen5: [] };
+    
+    // Arrays required for the specific Violin plot implementation requested
+    const violinGen = { gen1: [], gen2: [], gen3: [], gen4: [], gen5: [] };
 
     dataset.forEach((row, index) => {
-      const includeInRaincloud = row.MentHlth >= mentalHealthDays;
+      const includeInViolin = row.MentHlth >= mentalHealthDays;
       const isDiabetic = row.Diabetes_binary === 1;
       const target = isDiabetic ? stats.diabetic : stats.healthy;
 
@@ -191,14 +191,6 @@ export default function App() {
       if (row.Veggies === 1) target.veggies += 1;
       if (row.NoDocbcCost === 1) target.noDoc += 1;
       if (row.DiffWalk === 1) target.diffWalk += 1;
-
-      if (isDiabetic) { 
-        violin.dBMI.push(row.BMI); 
-        violin.dAge.push(row.Age); 
-      } else { 
-        violin.hBMI.push(row.BMI); 
-        violin.hAge.push(row.Age); 
-      }
 
       if (row.Income >= 1 && row.Income <= 8) { 
         incomeStats[row.Income].t += 1; 
@@ -238,9 +230,9 @@ export default function App() {
         if (row.Stroke === 1) d_stroke++;
       }
 
-      if (includeInRaincloud && row.GenHlth >= 1 && row.GenHlth <= 5 && index % 20 === 0) {
-        raincloudBMI[`gen${row.GenHlth}`].push(row.BMI);
-        raincloudAge[`gen${row.GenHlth}`].push(row.Age);
+      // Populate BMI data for violin plot
+      if (includeInViolin && row.GenHlth >= 1 && row.GenHlth <= 5 && index % 20 === 0) {
+        violinGen[`gen${row.GenHlth}`].push(row.BMI);
       }
     });
 
@@ -257,12 +249,12 @@ export default function App() {
       zMatrix.push(r);
     }
 
-    // Relative difference calculation for butterfly chart: ((Diabetic - Healthy) / Healthy) * 100
-    const calcRelativeDelta = (dCount, dTotal, hCount, hTotal) => {
-      const dRate = dTotal > 0 ? dCount / dTotal : 0;
-      const hRate = hTotal > 0 ? hCount / hTotal : 0;
-      return hRate > 0 ? ((dRate - hRate) / hRate) * 100 : 0;
-    };
+    // Average BMI points for the violin overlay line
+    const calcMean = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+    const violinMeans = [
+      calcMean(violinGen.gen1), calcMean(violinGen.gen2), 
+      calcMean(violinGen.gen3), calcMean(violinGen.gen4), calcMean(violinGen.gen5)
+    ];
 
     const riskFactorTitles = {
       bp: 'High Blood Pressure',
@@ -284,11 +276,11 @@ export default function App() {
       smoker: { ...calcOR(orTracks.smoker.ed, orTracks.smoker.eh, orTracks.smoker.ud, orTracks.smoker.uh), title: riskFactorTitles.smoker }
     };
 
-    // Sort odds ratios descending for the Bar Chart
-    const sortedOddsArray = Object.entries(oddsResult).sort((a, b) => a[1].or - b[1].or); // Ascending order so Plotly displays largest at top
+    const sortedOddsArray = Object.entries(oddsResult).sort((a, b) => a[1].or - b[1].or);
 
     return {
-      raincloudBMI, raincloudAge, 
+      violin: violinGen, 
+      violinMeans,
       heatmap: { z: zMatrix, labels: heatmapVariables },
       slope: {
         incomeY: [1, 2, 3, 4, 5, 6, 7, 8].map(l => calcPct(incomeStats[l].d, incomeStats[l].t)),
@@ -297,17 +289,26 @@ export default function App() {
       butterfly: {
         diet: {
           labels: ['Physically Active', 'Eats Fruit Daily', 'Eats Vegetables Daily'],
-          deltas: [
-            calcRelativeDelta(stats.diabetic.physAct, stats.diabetic.total, stats.healthy.physAct, stats.healthy.total),
-            calcRelativeDelta(stats.diabetic.fruits, stats.diabetic.total, stats.healthy.fruits, stats.healthy.total),
-            calcRelativeDelta(stats.diabetic.veggies, stats.diabetic.total, stats.healthy.veggies, stats.healthy.total)
+          healthy: [
+            -calcPct(stats.healthy.physAct, stats.healthy.total),
+            -calcPct(stats.healthy.fruits, stats.healthy.total),
+            -calcPct(stats.healthy.veggies, stats.healthy.total)
+          ],
+          diabetic: [
+            calcPct(stats.diabetic.physAct, stats.diabetic.total),
+            calcPct(stats.diabetic.fruits, stats.diabetic.total),
+            calcPct(stats.diabetic.veggies, stats.diabetic.total)
           ]
         },
         barriers: {
           labels: ['Difficulty Walking', 'Cannot Afford Doctor'],
-          deltas: [
-            calcRelativeDelta(stats.diabetic.diffWalk, stats.diabetic.total, stats.healthy.diffWalk, stats.healthy.total),
-            calcRelativeDelta(stats.diabetic.noDoc, stats.diabetic.total, stats.healthy.noDoc, stats.healthy.total)
+          healthy: [
+            -calcPct(stats.healthy.diffWalk, stats.healthy.total),
+            -calcPct(stats.healthy.noDoc, stats.healthy.total)
+          ],
+          diabetic: [
+            calcPct(stats.diabetic.diffWalk, stats.diabetic.total),
+            calcPct(stats.diabetic.noDoc, stats.diabetic.total)
           ]
         }
       },
@@ -382,6 +383,55 @@ export default function App() {
   const maxRiskScale = 50.0; 
   const cumulativePct = Math.min((cumulativeRisk / maxRiskScale) * 100, 100);
 
+  // Split Risk Keys for perfectly centered 4-and-3 column layout
+  const allRiskKeys = Object.keys(calcRisks);
+  const leftColKeys = allRiskKeys.slice(0, 4);
+  const rightColKeys = allRiskKeys.slice(4, 7);
+
+  const RiskBlock = ({ rKey }) => {
+    const label = 
+      rKey === 'bp' ? 'High Blood Pressure' : 
+      rKey === 'chol' ? 'High Cholesterol' : 
+      rKey === 'smoker' ? 'Active Tobacco Smoker' : 
+      rKey === 'heart' ? 'Heart Disease History' :
+      rKey === 'stroke' ? 'Prior Cerebrovascular Stroke' :
+      rKey === 'noPhysAct' ? 'Sedentary Lifestyle (No Exercise)' :
+      'Difficulty Walking / Ambulation Obstacles';
+
+    const orVal = processedData.odds[rKey].or;
+    const isActive = calcRisks[rKey];
+    const barWidth = isActive ? `${(orVal / 6.0) * 100}%` : '0%';
+
+    return (
+      <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3 shadow-inner h-full w-full">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input 
+            type="checkbox" 
+            checked={isActive} 
+            onChange={() => toggleRisk(rKey)} 
+            className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-indigo-500 accent-indigo-500 cursor-pointer" 
+          />
+          <span className="font-bold text-slate-200 text-sm md:text-base hover:text-indigo-400 transition-colors select-none">
+            {label}
+          </span>
+        </label>
+        
+        {/* Live Visual Scale */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1 bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
+            <div 
+              className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 transition-all duration-500 ease-out rounded-full"
+              style={{ width: barWidth }}
+            />
+          </div>
+          <span className={`text-xs font-bold font-mono w-14 text-right transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-600'}`}>
+            {isActive ? `${orVal.toFixed(2)}x` : '1.00x'}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans overflow-y-auto scroll-smooth">
       
@@ -403,7 +453,6 @@ export default function App() {
           </div>
           <div className="flex flex-wrap justify-center gap-4 md:gap-8 relative">
             
-            {/* Nav Item 1 */}
             <div className="group relative">
               <a href="#part1" className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-indigo-400 transition-colors py-2">
                 Part 1: Patient Risk <ChevronDown size={14}/>
@@ -414,7 +463,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Nav Item 2 */}
             <div className="group relative">
               <a href="#part2" className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-indigo-400 transition-colors py-2">
                 Part 2: Socioeconomic <ChevronDown size={14}/>
@@ -425,14 +473,13 @@ export default function App() {
               </div>
             </div>
 
-            {/* Nav Item 3 */}
             <div className="group relative">
               <a href="#part3" className="flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-indigo-400 transition-colors py-2">
                 Part 3: Intersections <ChevronDown size={14}/>
               </a>
               <div className="absolute hidden group-hover:block top-full right-0 md:left-0 mt-1 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50">
                 <a href="#sankey" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Comorbidity Web</a>
-                <a href="#violin" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Physical Markers Distribution</a>
+                <a href="#violins" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Physical Markers Distribution</a>
                 <a href="#heatmap" className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-indigo-300 rounded-lg transition">Connections Map</a>
               </div>
             </div>
@@ -447,22 +494,7 @@ export default function App() {
           Mapping Diabetes Risk & Systemic Barriers
         </h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 text-left text-sm">
-          <div className="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Technical Summary & Dataset Info</span>
-            <p className="text-slate-300 leading-relaxed">
-              This dashboard analyzes 70,000 anonymized health records extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) 2015 dataset. Using calculated statistical parameters, multi-dimensional stratification, and correlation matrices, we explore non-linear logistic markers, demographic discrepancies, and cardiovascular overlaps.
-            </p>
-            <a 
-              href="https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset?resource=download" 
-              target="_blank" 
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 mt-4 text-xs text-indigo-400 hover:text-indigo-300 font-bold underline"
-            >
-              Access Original Kaggle Source Dataset
-            </a>
-          </div>
-
+        <div className="mt-8 text-left text-sm max-w-2xl mx-auto">
           <div className="bg-indigo-950/25 p-5 rounded-2xl border border-indigo-900/35">
             <span className="text-xs font-bold text-indigo-300 uppercase tracking-widest block mb-2">Dashboard Objective</span>
             <p className="text-indigo-200 leading-relaxed font-medium">
@@ -472,6 +504,33 @@ export default function App() {
               Use the top navigation bar or scroll down to explore clinical indicators, societal structures, and chronic overlaps. Professionals can access detailed reports via "Professional Deep Dive" buttons.
             </p>
           </div>
+          
+          <div className="mt-6 flex justify-center">
+            <button 
+              onClick={() => setDeepDiveIntro(!deepDiveIntro)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md shadow-indigo-500/5"
+            >
+              <Brain size={16} /> 
+              {deepDiveIntro ? 'Hide Technical Details' : 'Professional Deep Dive'}
+            </button>
+          </div>
+          
+          {deepDiveIntro && (
+            <div className="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 mt-4 animate-fadeIn">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Technical Summary & Dataset Info</span>
+              <p className="text-slate-300 leading-relaxed">
+                This dashboard analyzes 70,000 anonymized health records extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) 2015 dataset. Using calculated statistical parameters, multi-dimensional stratification, and correlation matrices, we explore non-linear logistic markers, demographic discrepancies, and cardiovascular overlaps.
+              </p>
+              <a 
+                href="https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset?resource=download" 
+                target="_blank" 
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 mt-4 text-xs text-indigo-400 hover:text-indigo-300 font-bold underline"
+              >
+                📥 Access Original Kaggle Source Dataset
+              </a>
+            </div>
+          )}
         </div>
       </header>
 
@@ -494,50 +553,14 @@ export default function App() {
                 <p className="text-sm text-slate-400 mt-1">Select physiological indicators to observe how metabolic risk parameters compound against standard population baselines.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.keys(calcRisks).map(key => {
-                  const label = 
-                    key === 'bp' ? 'High Blood Pressure' : 
-                    key === 'chol' ? 'High Cholesterol' : 
-                    key === 'smoker' ? 'Active Tobacco Smoker' : 
-                    key === 'heart' ? 'Heart Disease History' :
-                    key === 'stroke' ? 'Prior Cerebrovascular Stroke' :
-                    key === 'noPhysAct' ? 'Sedentary Lifestyle (No Exercise)' :
-                    'Difficulty Walking / Ambulation Obstacles';
-
-                  const orVal = processedData.odds[key].or;
-                  const isActive = calcRisks[key];
-                  const barWidth = isActive ? `${(orVal / 6.0) * 100}%` : '0%';
-
-                  return (
-                    <div key={key} className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3 shadow-inner">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={isActive} 
-                          onChange={() => toggleRisk(key)} 
-                          className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-indigo-500 accent-indigo-500 cursor-pointer" 
-                        />
-                        <span className="font-bold text-slate-200 text-sm md:text-base hover:text-indigo-400 transition-colors select-none">
-                          {label}
-                        </span>
-                      </label>
-                      
-                      {/* Live Visual Scale */}
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                          <div 
-                            className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 transition-all duration-500 ease-out rounded-full"
-                            style={{ width: barWidth }}
-                          />
-                        </div>
-                        <span className={`text-xs font-bold font-mono w-14 text-right transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-600'}`}>
-                          {isActive ? `${orVal.toFixed(2)}x` : '1.00x'}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* Perfectly centered 4/3 split layout */}
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 flex flex-col gap-4">
+                  {leftColKeys.map(key => <RiskBlock key={key} rKey={key} />)}
+                </div>
+                <div className="flex-1 flex flex-col gap-4 justify-center">
+                  {rightColKeys.map(key => <RiskBlock key={key} rKey={key} />)}
+                </div>
               </div>
 
               {/* Multiplicative risk bar */}
@@ -733,12 +756,12 @@ export default function App() {
             )}
           </div>
 
-          {/* Butterfly Chart using Relative Percentage Delta */}
+          {/* Mirrored Butterfly Chart */}
           <div id="butterfly" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">Behavioral Rates & Care Barriers (Relative Disparity)</h3>
-                <p className="text-sm text-slate-400">Toggle between Diet & Exercise and Systemic Barriers by clicking the buttons to the right.</p>
+                <h3 className="text-xl font-bold text-white mb-1">Behavioral Rates & Care Barriers (Healthy vs. Diabetic)</h3>
+                <p className="text-sm text-slate-400">Comparing prevalence rates between the two cohorts. Toggle categories below.</p>
               </div>
               <div className="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
                 <button 
@@ -756,47 +779,60 @@ export default function App() {
               </div>
             </div>
             
-            {/* The actual Butterfly Chart plotting relative deltas */}
             <div className="w-full h-[350px]">
               <Plot
-                data={[{ 
-                  type: 'bar', 
-                  x: processedData.butterfly[butterflyView].deltas, 
-                  y: processedData.butterfly[butterflyView].labels, 
-                  orientation: 'h', 
-                  marker: { 
-                    color: processedData.butterfly[butterflyView].deltas.map(val => val < 0 ? '#10b981' : '#f43f5e') 
+                data={[
+                  { 
+                    type: 'bar', 
+                    x: processedData.butterfly[butterflyView].healthy, 
+                    y: processedData.butterfly[butterflyView].labels, 
+                    orientation: 'h', 
+                    name: 'Healthy Base',
+                    marker: { color: '#10b981' },
+                    hovertemplate: '<b>%{y}</b><br>Healthy Pop Rate: %{customdata:.1f}%<extra></extra>',
+                    customdata: processedData.butterfly[butterflyView].healthy.map(v => Math.abs(v))
                   },
-                  hovertemplate: '<b>%{y}</b><br>Difference from Healthy Base: %{x:.1f}%<extra></extra>' 
-                }]}
+                  { 
+                    type: 'bar', 
+                    x: processedData.butterfly[butterflyView].diabetic, 
+                    y: processedData.butterfly[butterflyView].labels, 
+                    orientation: 'h', 
+                    name: 'Diabetic Base',
+                    marker: { color: '#f43f5e' },
+                    hovertemplate: '<b>%{y}</b><br>Diabetic Pop Rate: %{x:.1f}%<extra></extra>' 
+                  }
+                ]}
                 layout={{ 
                   font: { color: '#94a3b8' }, 
                   paper_bgcolor: 'transparent', 
                   plot_bgcolor: 'transparent', 
-                  margin: { l: 220, r: 20, t: 20, b: 40 }, 
+                  margin: { l: 150, r: 20, t: 30, b: 40 }, 
+                  barmode: 'relative',
                   xaxis: { 
-                    title: 'Relative Difference vs. Healthy Baseline (%)',
+                    title: 'Prevalence Rate (%)',
                     gridcolor: '#1e293b',
+                    tickformat: (val) => Math.abs(val) + '%',
                     autorange: true 
                   }, 
                   yaxis: { gridcolor: 'transparent' },
-                  shapes: [{ type: 'line', x0: 0, x1: 0, y0: -0.5, y1: 2.5, line: { color: '#94a3b8', width: 2 } }],
-                  autosize: true 
+                  shapes: [{ type: 'line', x0: 0, x1: 0, y0: -0.5, y1: 2.5, line: { color: '#ffffff', width: 2 } }],
+                  autosize: true,
+                  legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.15 }
                 }}
                 useResizeHandler={true} style={{ width: '100%', height: '100%' }}
               />
             </div>
             
             <PracticalInsightBanner text={butterflyView === 'diet' ? 
-              "While regular dietary intake of fruits and vegetables shows only small relative declines (around -10% to -15%), physical activity levels reveal a severe drop-off (over -20% decline) among diabetic populations."
-              : "Structural health disparities are alarming: patients with diabetes experience a massive +250% relative increase in walking difficulties and a steep relative increase in avoiding medical care due to costs."} 
+              "While regular dietary intake of fruits and vegetables shows only small declines, physical activity levels reveal a severe drop-off among diabetic populations."
+              : "Structural health disparities are alarming: patients with diabetes report experiencing difficulty walking and avoiding medical care due to costs far more frequently."} 
             />
           </div>
 
           {/* Part 2b Descriptor */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
-              To truly understand disparities, we must look at how much more frequently diabetics face certain obstacles compared to healthy individuals. This chart displays the <strong>relative percentage difference</strong> from the healthy baseline. For instance, while vegetable and fruit consumption drops mildly among those with diabetes, physical activity is significantly diminished. The true shock lies in the structural barriers: individuals living with diabetes report an astonishing relative increase (over 200%) in experiencing severe difficulty walking or climbing stairs, and a substantial spike in being unable to afford doctor visits when they need them.
+              To truly understand disparities, we must look at how much more frequently diabetics face certain obstacles compared to healthy individuals. This mirrored chart displays the base rates side-by-side. For instance, while vegetable and fruit consumption drops mildly among those with diabetes, physical activity is significantly diminished. The true shock lies in the structural barriers: individuals living with diabetes report a massive spike in experiencing severe difficulty walking or climbing stairs, and a substantial increase in being unable to afford doctor visits when they need them.
             </p>
             <div>
               <button 
@@ -813,7 +849,7 @@ export default function App() {
                   <Stethoscope size={14} /> Healthcare Policy & Access Analysis
                 </div>
                 <p className="text-slate-300 leading-relaxed text-sm">
-                  By tracking the relative delta (Diabetic Cohort / Healthy Cohort - 1), we see that behavioral nutrition choices (fruit and veg consumption) diverge less dramatically than physical and systemic variables. The exponential spike in ambulatory difficulty reflects advanced peripheral neuropathy, joint stress from elevated BMI, and generalized fatigue. Furthermore, the steep rise in healthcare cost barriers highlights a critical failure in systemic care delivery: the patients who require the most intensive and regular metabolic surveillance are statistically the most likely to skip appointments due to out-of-pocket expenses, ensuring worse longitudinal outcomes.
+                  By tracking the prevalence rates side-by-side, we see that behavioral nutrition choices (fruit and veg consumption) diverge less dramatically than physical and systemic variables. The exponential spike in ambulatory difficulty reflects advanced peripheral neuropathy, joint stress from elevated BMI, and generalized fatigue. Furthermore, the steep rise in healthcare cost barriers highlights a critical failure in systemic care delivery: the patients who require the most intensive and regular metabolic surveillance are statistically the most likely to skip appointments due to out-of-pocket expenses, ensuring worse longitudinal outcomes.
                 </p>
               </div>
             )}
@@ -850,7 +886,7 @@ export default function App() {
               />
             </div>
 
-            {/* NAVIGATION CARDS (Color Coded to match Sankey Nodes) */}
+            {/* NAVIGATION CARDS */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
               <button 
                 onClick={() => setSelectedNode(0)}
@@ -935,103 +971,98 @@ export default function App() {
             )}
           </div>
 
-          {/* Violin Density Plot with Full Autoscaling (NO raincloud points) */}
-          <div id="violin" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
+          {/* SPLIT VIOLIN PLOT (Using your exact integrated code) */}
+          <div id="violins" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">Subjective Wellness Distributions</h3>
-                <p className="text-sm text-slate-400">Distribution shapes grouped by self-reported health rating (1 = Excellent, 5 = Poor).</p>
+                <h4 className="text-lg font-bold text-white mb-1">Continuous BMI Distributions vs. Self-Reported General Health</h4>
+                <p className="text-xs text-slate-400">
+                  Observe the full density of weights across general health levels (1 = Excellent, 5 = Poor).
+                </p>
               </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 items-center bg-slate-950 p-4 rounded-xl border border-slate-800 w-full lg:w-auto">
-                <div className="w-full sm:w-48">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Select Parameter</label>
-                  <select 
-                    value={violinMetric} 
-                    onChange={(e) => setViolinMetric(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="BMI">Body Mass Index (BMI)</option>
-                    <option value="Age">Patient Age Bracket</option>
-                  </select>
-                </div>
-
-                <div className="w-full sm:w-56">
-                  <label className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                    <span>Min. Poor Mental Days</span>
-                    <span className="text-blue-400">{mentalHealthDays}</span>
-                  </label>
-                  <input type="range" min="0" max="30" value={mentalHealthDays} onChange={(e) => setMentalHealthDays(parseInt(e.target.value))} className="w-full accent-blue-500" />
-                </div>
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 w-full lg:w-72">
+                <label className="flex justify-between text-xs text-slate-300 font-bold mb-3">
+                  <span>Minimum Bad Mental Health Days:</span>
+                  <span className="text-indigo-400">{mentalHealthDays} Days</span>
+                </label>
+                <input 
+                  type="range" 
+                  min="0" max="30" 
+                  value={mentalHealthDays} 
+                  onChange={(e) => setMentalHealthDays(parseInt(e.target.value))} 
+                  className="w-full accent-indigo-500 cursor-pointer" 
+                />
               </div>
             </div>
-            
-            <div className="w-full h-[450px]">
-              <Plot
-                data={[
-                  ...[1, 2, 3, 4, 5].map((lvl, idx) => {
-                    const colors = ['#10b981', '#34d399', '#fbbf24', '#f97316', '#ef4444'];
-                    const activeRaincloud = violinMetric === 'BMI' ? processedData.raincloudBMI : processedData.raincloudAge;
 
-                    return {
-                      type: 'violin', 
-                      x: Array(activeRaincloud[`gen${lvl}`].length).fill(`Level ${lvl}`), 
-                      y: activeRaincloud[`gen${lvl}`],
-                      name: `Health Level ${lvl}`, 
-                      points: false, // Ensures pure violin shape (no scatter points)
-                      side: 'both',
-                      line: { color: colors[idx], width: 2 }, 
-                      meanline: { visible: true, width: 4, color: '#ffffff' }, 
-                      hovertemplate: violinMetric === 'BMI' 
-                        ? 'Self Rating: Level ' + lvl + '<br>BMI: %{y}<extra></extra>'
-                        : 'Self Rating: Level ' + lvl + '<br>Age Bracket: %{y}<extra></extra>'
-                    };
-                  }),
-                  {
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    x: ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'],
-                    y: violinMetric === 'BMI' ? processedData.raincloudBMIMeans : processedData.raincloudAgeMeans,
-                    name: 'Average Trend',
-                    line: { color: '#ffffff', width: 4 },
-                    marker: { size: 10, color: '#fbbf24', line: { color: '#ffffff', width: 2 } },
-                    hovertemplate: violinMetric === 'BMI'
-                      ? 'Average BMI: %{y:.1f}<extra></extra>'
-                      : 'Average Age Bracket: %{y:.1f}<extra></extra>'
-                  }
-                ]}
-                layout={{ 
-                  font: { color: '#94a3b8' }, 
-                  paper_bgcolor: 'transparent', 
-                  plot_bgcolor: 'transparent', 
-                  xaxis: { title: 'General Health Rating (1 = Excellent, 5 = Poor)', gridcolor: '#1e293b' }, 
-                  yaxis: { 
-                    title: violinMetric === 'BMI' ? 'BMI (Body Mass Index)' : 'Age Bracket (1 = 18-24, 13 = 80+)', 
-                    gridcolor: '#1e293b', 
-                    autorange: true,
-                    ...(violinMetric === 'Age' ? {
-                      tickvals: [1, 3, 5, 7, 9, 11, 13],
-                      ticktext: ['18-24', '30-34', '40-44', '50-54', '60-64', '70-74', '80+']
-                    } : {})
-                  }, 
-                  showlegend: false, 
-                  autosize: true 
-                }}
-                useResizeHandler={true} 
-                style={{ width: '100%', height: '100%' }}
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              {/* Explanatory Left Panel explaining Violin Plots */}
+              <div className="lg:col-span-4 bg-slate-950/60 p-4 border border-slate-800 rounded-xl space-y-4 text-xs">
+                <div>
+                  <span className="font-extrabold text-slate-400 uppercase block mb-1">
+                    What is a Violin Plot?
+                  </span>
+                  <p className="text-slate-300 leading-relaxed">
+                    A violin plot is an advanced statistical chart that combines a box plot with a continuous density curve. While a line graph only shows basic averages, a violin plot maps the entire distribution of weights. The width of each violin represents where most people's body mass indexes are clustered.
+                  </p>
+                </div>
+                <div className="bg-indigo-950/20 p-3 rounded border border-indigo-900/20">
+                  <span className="font-extrabold text-indigo-300 block mb-1">What does this mean for you?</span>
+                  <p className="text-indigo-200 leading-relaxed font-medium">
+                    Think of a violin shape as a distribution mirror. For people who report 'Excellent' health (Level 1), the violin is widest near a healthy BMI (24). For those who report 'Poor' health (Level 5), the shape bulges much higher, showing weight clustering in obese territory. Adjust the mental health slider to see how weights shift as chronic stress rises.
+                  </p>
+                </div>
+              </div>
+
+              {/* Split Violin Plot */}
+              <div className="lg:col-span-8 h-[380px]">
+                <Plot
+                  data={[
+                    ...[1, 2, 3, 4, 5].map((lvl, idx) => {
+                      const colors = ['#10b981', '#34d399', '#fbbf24', '#f97316', '#ef4444'];
+                      return {
+                        type: 'violin',
+                        y: processedData.violin[`gen${lvl}`],
+                        name: `Health Lvl ${lvl}`,
+                        points: false, // Clean up visual noise by hiding individual scatter points
+                        box: { visible: true, width: 0.15, line: { color: '#ffffff' } },
+                        meanline: { visible: true, color: '#fbbf24', width: 2 },
+                        line: { color: colors[idx], width: 2 },
+                        hovertemplate: 'Health Rating: ' + lvl + '<br>BMI: %{y}<extra></extra>'
+                      };
+                    }),
+                    {
+                      type: 'scatter',
+                      mode: 'lines+markers',
+                      x: ['Health Lvl 1', 'Health Lvl 2', 'Health Lvl 3', 'Health Lvl 4', 'Health Lvl 5'],
+                      y: processedData.violinMeans,
+                      name: 'Average BMI Trend',
+                      line: { color: '#ffffff', width: 4, dash: 'solid' },
+                      marker: { size: 10, color: '#fbbf24', line: { color: '#ffffff', width: 2 } },
+                      hovertemplate: 'Average BMI: %{y:.1f}<extra></extra>'
+                    }
+                  ]}
+                  layout={{
+                    font: { color: '#94a3b8', size: 9 },
+                    paper_bgcolor: 'transparent',
+                    plot_bgcolor: 'transparent',
+                    xaxis: { title: 'General Health Rating (1 = Excellent, 5 = Poor)', gridcolor: '#1e293b' },
+                    yaxis: { title: 'BMI (Body Mass Index)', gridcolor: '#1e293b', range: [10, 60] },
+                    showlegend: false,
+                    autosize: true,
+                    margin: { l: 50, r: 20, t: 15, b: 50 }
+                  }}
+                  useResizeHandler={true}
+                  style={{ width: '100%', height: '100%' }}
+                />
+              </div>
             </div>
-            <PracticalInsightBanner text={violinMetric === 'BMI' ? 
-              "A clear upward trend: as subjective health ratings decline, average BMI climbs progressively, with the widest bulges appearing in obese ranges for Level 4 and Level 5."
-              : "Age acts as a progressive burden: older age brackets (levels 9-13, representing ages 60+) are heavily concentrated in self-reported health levels 4 and 5."} 
-            />
           </div>
 
           {/* Part 3b Descriptor */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
-              Subjective well-being is often a strong reflection of our physical health. This violin plot groups patients by their self-reported health rating (from Level 1/Excellent to Level 5/Poor). The thickness of the shape shows where the majority of patients sit. When examining the <strong>BMI parameter</strong>, you can clearly see that for those reporting 'Excellent' health (Level 1), the body weight is concentrated heavily around the healthy mid-20s. However, for those reporting 'Poor' health (Level 5), the shape bulges much higher, showing massive weight clustering in the obese territory (BMIs of 30-40). <br/><br/>
-              When toggling to the <strong>Age parameter</strong>, we see that aging predictably drags subjective health downward. In Level 1 (Excellent), the thickest part of the distribution belongs to young adults (18-24). In Level 5 (Poor), the thickest cluster sits in the 60-75 age brackets. Try adjusting the mental health slider to see how these distributions shift as chronic stress indicators rise.
+              Subjective well-being is often a strong reflection of our physical health. When viewing the BMI distribution across general health levels, it becomes clear that self-reported wellness and objective physiological weight metrics are closely connected. By sliding the mental health days input at the top, you can even explore how the accumulation of stressful or mentally poor days shifts these distributions further.
             </p>
             <div>
               <button 
@@ -1048,13 +1079,13 @@ export default function App() {
                   <Stethoscope size={14} /> Neuropsychiatric & Somatic Analysis
                 </div>
                 <p className="text-slate-300 leading-relaxed text-sm">
-                  This plot maps subjective health ratings against objective physical metrics via kernel density estimation. The white trendline displays a significant increase in mean BMI, moving from 26.2 in Level 1 up to 32.4 in Level 5. When filtering for mental health distress using the slider, we observe an upward shift in density distributions within the lower health levels. This highlights the bi-directional relationships of metabolic and neuropsychiatric health, where chronic psychological stress promotes visceral lipid storage and worsens subjective somatic wellness.
+                  This plot maps subjective health ratings against objective physical metrics via kernel density estimation. The white trendline displays a significant increase in mean BMI moving from Level 1 up to Level 5. When filtering for mental health distress using the slider, we observe an upward shift in density distributions within the lower health levels. This highlights the bi-directional relationships of metabolic and neuropsychiatric health, where chronic psychological stress promotes visceral lipid storage and worsens subjective somatic wellness.
                 </p>
               </div>
             )}
           </div>
 
-          {/* Heatmap & Correlation Translator */}
+          {/* Decompressed Heatmap & Correlation Translator */}
           <div id="heatmap" className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
             <div className="flex justify-between items-start mb-6">
               <div>
@@ -1067,10 +1098,12 @@ export default function App() {
               />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Changed to xl:grid-cols-2 and boosted the heatmap height to 600px to avoid compression */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+              
               {/* Asymmetric Heatmap */}
-              <div className="lg:col-span-7 flex flex-col h-full">
-                <div className="h-[400px]">
+              <div className="flex flex-col h-full w-full">
+                <div className="w-full h-[550px] lg:h-[650px]">
                   <Plot 
                     data={[{ 
                       type: 'heatmap', 
@@ -1085,10 +1118,10 @@ export default function App() {
                       hovertemplate: 'Var 1: %{x}<br>Var 2: %{y}<br>Correlation: %{z:.2f}<extra></extra>'
                     }]} 
                     layout={{ 
-                      font: { color: '#94a3b8', size: 10 }, 
+                      font: { color: '#94a3b8', size: 11 }, 
                       paper_bgcolor: 'transparent', 
                       plot_bgcolor: 'transparent', 
-                      margin: { l: 140, r: 10, t: 10, b: 120 }, 
+                      margin: { l: 150, r: 10, t: 20, b: 150 }, 
                       xaxis: { tickangle: -45, automargin: true, gridcolor: 'transparent' }, 
                       yaxis: { autorange: 'reversed', automargin: true, gridcolor: 'transparent' }, 
                       autosize: true 
@@ -1099,48 +1132,48 @@ export default function App() {
                 </div>
                 
                 {/* Visual Legend specifically for heatmap interpretations */}
-                <div className="mt-2 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                <div className="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
                   <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider">How to Read the Color Mapping:</h5>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                     <div className="flex items-center gap-3">
                       <div className="w-5 h-5 bg-blue-600 rounded flex-shrink-0" />
-                      <span className="text-slate-400"><strong>Deep Blue</strong> (+0.25 to +1.00): Strong positive co-occurrence (conditions that rise together).</span>
+                      <span className="text-slate-400"><strong>Deep Blue</strong> (+0.25 to +1.00): Strong positive co-occurrence.</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-5 h-5 bg-slate-100 rounded border border-slate-300 flex-shrink-0" />
-                      <span className="text-slate-400"><strong>White/Light</strong> (-0.10 to +0.10): Statistical independence (no direct connection).</span>
+                      <span className="text-slate-400"><strong>White/Light</strong> (-0.10 to +0.10): Statistical independence.</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-5 h-5 bg-red-600 rounded flex-shrink-0" />
-                      <span className="text-slate-400"><strong>Deep Red</strong> (-0.10 to -1.00): Strong inverse relationship (one rises, the other falls).</span>
+                      <span className="text-slate-400"><strong>Deep Red</strong> (-0.10 to -1.00): Strong inverse relationship.</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Pairwise Translator Column */}
-              <div className="lg:col-span-5 bg-slate-800/40 p-6 border border-slate-700/50 rounded-xl flex flex-col justify-start">
-                <div className="mb-4">
+              <div className="bg-slate-800/40 p-6 lg:p-8 border border-slate-700/50 rounded-xl flex flex-col justify-start w-full">
+                <div className="mb-6">
                   <span className="text-xs font-black tracking-widest text-indigo-400 uppercase">Interactive Tool</span>
-                  <h4 className="text-lg font-bold text-white mt-1">Correlation Translator</h4>
-                  <p className="text-xs text-slate-400 mt-1">Select a key pair of variables below to translate mathematical patterns into clear clinical insights.</p>
+                  <h4 className="text-xl font-bold text-white mt-1">Correlation Translator</h4>
+                  <p className="text-sm text-slate-400 mt-2">Select a key pair of variables below to translate mathematical patterns into clear clinical insights.</p>
                 </div>
 
                 <select 
                   value={translatorVar} 
                   onChange={(e) => setTranslatorVar(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-6"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-8 shadow-inner"
                 >
                   {Object.keys(correlationTranslations).map(pair => (
                     <option key={pair} value={pair}>{pair}</option>
                   ))}
                 </select>
 
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {correlationTranslations[translatorVar].map((bullet, idx) => (
-                    <div key={idx} className="flex gap-3 items-start bg-slate-900/50 p-3 rounded-lg border border-slate-850">
-                      <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
-                      <p className="text-sm text-slate-300 leading-relaxed">{bullet}</p>
+                    <div key={idx} className="flex gap-4 items-start bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                      <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                      <p className="text-sm md:text-base text-slate-300 leading-relaxed">{bullet}</p>
                     </div>
                   ))}
                 </div>
