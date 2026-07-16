@@ -671,36 +671,45 @@ export default function App() {
         <section id="part2" className="space-y-8 scroll-mt-20">
           <div className="border-b border-slate-800 pb-4 mt-16 mb-8">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Users className="text-amber-500" size={24} /> Lens 2:Social Stratification (Income, Education, and Access)
+              <Users className="text-amber-500" size={24} /> Lens 2: Social Stratification (Income, Education, and Access)
             </h2>
             <p className="text-slate-400 mt-2">Investigate how household income scales and educational achievement act as systemic buffers for metabolic health.</p>
           </div>
 
           {/* Slopes Graph with True Autoscaling */}
           <div id="slopes" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
-            <ChartInfoButton 
-              title="Regression Analysis" 
-              text="These line charts plot the calculated average prevalence of diabetes across ordinal categorical variables. The steepness of the slope indicates the strength of the socioeconomic protection factor." 
-            />
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <div>
+            
+            {/* Header Container: Splits title on left, toggles & info button on the far right */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+              <div className="space-y-1">
                 <h3 className="text-xl font-bold text-white mb-1">2.1 Socioeconomic Disparities</h3>
                 <p className="text-sm text-slate-400">Toggle between Annual Income Bracket and Education Level by clicking the buttons to the right.</p>
               </div>
               
-              <div className="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
-                <button 
-                  onClick={() => setSlopeView('income')} 
-                  className={`px-5 py-2.5 text-sm rounded-lg font-bold transition-all duration-300 ${slopeView === 'income' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
-                >
-                  Annual Income
-                </button>
-                <button 
-                  onClick={() => setSlopeView('education')} 
-                  className={`px-5 py-2.5 text-sm rounded-lg font-bold transition-all duration-300 ${slopeView === 'education' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
-                >
-                  Education Level
-                </button>
+              {/* Upper Right Action Group */}
+              <div className="flex items-center gap-3 self-stretch lg:self-auto justify-between lg:justify-end">
+                <div className="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
+                  <button 
+                    type="button"
+                    onClick={() => setSlopeView('income')} 
+                    className={`px-5 py-2.5 text-sm rounded-lg font-bold transition-all duration-300 ${slopeView === 'income' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
+                  >
+                    Annual Income
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setSlopeView('education')} 
+                    className={`px-5 py-2.5 text-sm rounded-lg font-bold transition-all duration-300 ${slopeView === 'education' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
+                  >
+                    Education Level
+                  </button>
+                </div>
+                <div className="shrink-0">
+                  <ChartInfoButton 
+                    title="Regression Analysis" 
+                    text="These line charts plot the calculated average prevalence of diabetes across ordinal categorical variables. The steepness of the slope indicates the strength of the socioeconomic protection factor." 
+                  />
+                </div>
               </div>
             </div>
 
@@ -749,7 +758,7 @@ export default function App() {
               "A steep gradient persists across household income classes: the poorest earners exhibit more than double the diabetes rate of those in upper-income classes."
               : "Educational achievement functions as a protective socioeconomic proxy: those completing graduate studies show half the diabetic rates of those who did not complete high school."} 
             />
-          </div>
+          </div> {/* <-- Closes #slopes container */}
 
           {/* Part 2a Descriptor */}
           <div className="space-y-4 max-w-4xl">
@@ -758,6 +767,7 @@ export default function App() {
             </p>
             <div>
               <button 
+                type="button"
                 onClick={() => setDeepDivePart2a(!deepDivePart2a)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md shadow-indigo-500/5"
               >
@@ -779,28 +789,38 @@ export default function App() {
 
           {/* Mirrored Butterfly Chart */}
           <div id="butterfly" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
-            <ChartInfoButton 
-              title="Relative Percentage Disparities" 
-              text="Instead of simply comparing raw bars, we have calculated the exact Relative Difference: ((Diabetic Rate - Healthy Rate) / Healthy Rate) * 100. The scale is artificially stretched from -100 to 100 to emphasize the visual divide between the cohorts." 
-            />
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <div>
+            
+            {/* Header Container: Splits title on left, toggles & info button on the far right */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+              <div className="space-y-1">
                 <h3 className="text-xl font-bold text-white mb-1">2.2 Behavioral Rates & Care Barriers (Healthy vs. Diabetic)</h3>
                 <p className="text-sm text-slate-400">Comparing prevalence rates between the two cohorts. Toggle categories below.</p>
               </div>
-              <div className="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
-                <button 
-                  onClick={() => setButterflyView('diet')} 
-                  className={`px-5 py-2.5 text-sm rounded-lg font-bold transition-all duration-300 ${butterflyView === 'diet' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
-                >
-                  Diet & Exercise
-                </button>
-                <button 
-                  onClick={() => setButterflyView('barriers')} 
-                  className={`px-5 py-2.5 text-sm rounded-lg font-bold transition-all duration-300 ${butterflyView === 'barriers' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
-                >
-                  Systemic Barriers
-                </button>
+              
+              {/* Upper Right Action Group */}
+              <div className="flex items-center gap-3 self-stretch lg:self-auto justify-between lg:justify-end">
+                <div className="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
+                  <button 
+                    type="button"
+                    onClick={() => setButterflyView('diet')} 
+                    className={`px-5 py-2.5 text-sm rounded-lg font-bold transition-all duration-300 ${butterflyView === 'diet' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
+                  >
+                    Diet & Exercise
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setButterflyView('barriers')} 
+                    className={`px-5 py-2.5 text-sm rounded-lg font-bold transition-all duration-300 ${butterflyView === 'barriers' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-900'}`}
+                  >
+                    Systemic Barriers
+                  </button>
+                </div>
+                <div className="shrink-0">
+                  <ChartInfoButton 
+                    title="Relative Percentage Disparities" 
+                    text="Instead of simply comparing raw bars, we have calculated the exact Relative Difference: ((Diabetic Rate - Healthy Rate) / Healthy Rate) * 100. The scale is artificially stretched from -100 to 100 to emphasize the visual divide between the cohorts." 
+                  />
+                </div>
               </div>
             </div>
             
@@ -852,7 +872,7 @@ export default function App() {
               "While regular dietary intake of fruits and vegetables shows only small declines, physical activity levels reveal a severe drop-off among diabetic populations."
               : "Structural health disparities are alarming: patients with diabetes report experiencing difficulty walking and avoiding medical care due to costs far more frequently."} 
             />
-          </div>
+          </div> {/* <-- Closes #butterfly container */}
 
           {/* Part 2b Descriptor */}
           <div className="space-y-4 max-w-4xl">
@@ -861,6 +881,7 @@ export default function App() {
             </p>
             <div>
               <button 
+                type="button"
                 onClick={() => setDeepDivePart2b(!deepDivePart2b)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-slate-700 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-300 shadow-md"
               >
