@@ -985,9 +985,13 @@ export default function App() {
             )}
           </div>
 
-          {/* SPLIT VIOLIN PLOT (Using your exact integrated code) */}
+          {/* SPLIT VIOLIN PLOT */}
           <div id="violins" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
-            <ChartInfoButton title="Violin Density Plots" text="A violin plot combines a traditional box plot with a kernel density estimation (KDE) curve. Wider sections represent where the highest concentration of patient BMIs fall. The white line tracks the calculated statistical mean." />
+            <ChartInfoButton 
+              title="Violin Density Plots" 
+              text="A violin plot combines a traditional box plot with a kernel density estimation (KDE) curve. Wider sections represent where the highest concentration of patient BMIs fall. The white line tracks the calculated statistical mean." 
+            />
+            
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
               <div>
                 <h4 className="text-lg font-bold text-white mb-1">3.2 Continuous BMI Distributions vs. Self-Reported General Health</h4>
@@ -995,6 +999,7 @@ export default function App() {
                   Observe the full density of weights across general health levels (1 = Excellent, 5 = Poor).
                 </p>
               </div>
+              
               <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 w-full lg:w-72">
                 <label className="flex justify-between text-xs text-slate-300 font-bold mb-3">
                   <span>Minimum Bad Mental Health Days:</span>
@@ -1004,59 +1009,58 @@ export default function App() {
                   type="range" 
                   min="0" max="30" 
                   value={mentalHealthDays} 
-                  onChange={(e) => setMentalHealthDays(parseInt(e.target.value))} 
+                  onChange={(e) => setMentalHealthDays(parseInt(e.target.value, 10))} 
                   className="w-full accent-indigo-500 cursor-pointer" 
                 />
               </div>
             </div>
 
-              {/* Split Violin Plot */}
-              <div className="lg:col-span-8 h-[380px]">
-                <Plot
-                  data={[
-                    ...[1, 2, 3, 4, 5].map((lvl, idx) => {
-                      const colors = ['#10b981', '#34d399', '#fbbf24', '#f97316', '#ef4444'];
-                      return {
-                        type: 'violin',
-                        y: processedData.violin[`gen${lvl}`],
-                        name: `Health Lvl ${lvl}`,
-                        points: false, // Clean up visual noise by hiding individual scatter points
-                        box: { visible: true, width: 0.15, line: { color: '#ffffff' } },
-                        meanline: { visible: true, color: '#fbbf24', width: 2 },
-                        line: { color: colors[idx], width: 2 },
-                        hovertemplate: 'Health Rating: ' + lvl + '<br>BMI: %{y}<extra></extra>'
-                      };
-                    }),
-                    {
-                      type: 'scatter',
-                      mode: 'lines+markers',
-                      x: ['Health Lvl 1', 'Health Lvl 2', 'Health Lvl 3', 'Health Lvl 4', 'Health Lvl 5'],
-                      y: processedData.violinMeans,
-                      name: 'Average BMI Trend',
-                      line: { color: '#ffffff', width: 4, dash: 'solid' },
-                      marker: { size: 10, color: '#fbbf24', line: { color: '#ffffff', width: 2 } },
-                      hovertemplate: 'Average BMI: %{y:.1f}<extra></extra>'
-                    }
-                  ]}
-                  layout={{
-                    font: { color: '#94a3b8', size: 9 },
-                    paper_bgcolor: 'transparent',
-                    plot_bgcolor: 'transparent',
-                    xaxis: { title: 'General Health Rating (1 = Excellent, 5 = Poor)', gridcolor: '#1e293b' },
-                    yaxis: { title: 'BMI (Body Mass Index)', gridcolor: '#1e293b', range: [10, 60] },
-                    showlegend: false,
-                    autosize: true,
-                    margin: { l: 50, r: 20, t: 15, b: 50 }
-                  }}
-                  useResizeHandler={true}
-                  style={{ width: '100%', height: '100%' }}
-                />
-              </div>
+            {/* Split Violin Plot */}
+            <div className="w-full h-[380px]">
+              <Plot
+                data={[
+                  ...[1, 2, 3, 4, 5].map((lvl, idx) => {
+                    const colors = ['#10b981', '#34d399', '#fbbf24', '#f97316', '#ef4444'];
+                    return {
+                      type: 'violin',
+                      y: processedData.violin[`gen${lvl}`],
+                      name: `Health Lvl ${lvl}`,
+                      points: false, // Clean up visual noise by hiding individual scatter points
+                      box: { visible: true, width: 0.15, line: { color: '#ffffff' } },
+                      meanline: { visible: true, color: '#fbbf24', width: 2 },
+                      line: { color: colors[idx], width: 2 },
+                      hovertemplate: 'Health Rating: ' + lvl + '<br>BMI: %{y}<extra></extra>'
+                    };
+                  }),
+                  {
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    x: ['Health Lvl 1', 'Health Lvl 2', 'Health Lvl 3', 'Health Lvl 4', 'Health Lvl 5'],
+                    y: processedData.violinMeans,
+                    name: 'Average BMI Trend',
+                    line: { color: '#ffffff', width: 4, dash: 'solid' },
+                    marker: { size: 10, color: '#fbbf24', line: { color: '#ffffff', width: 2 } },
+                    hovertemplate: 'Average BMI: %{y:.1f}<extra></extra>'
+                  }
+                ]}
+                layout={{
+                  font: { color: '#94a3b8', size: 9 },
+                  paper_bgcolor: 'transparent',
+                  plot_bgcolor: 'transparent',
+                  xaxis: { title: 'General Health Rating (1 = Excellent, 5 = Poor)', gridcolor: '#1e293b' },
+                  yaxis: { title: 'BMI (Body Mass Index)', gridcolor: '#1e293b', range: [10, 60] },
+                  showlegend: false,
+                  autosize: true,
+                  margin: { l: 50, r: 20, t: 15, b: 50 }
+                }}
+                useResizeHandler={true}
+                style={{ width: '100%', height: '100%' }}
+              />
             </div>
           </div>
 
           {/* Part 3b Descriptor */}
-          <div className="space-y-4 max-w-4xl">
+          <div className="space-y-4 max-w-4xl mt-6">
             <p className="text-slate-300 leading-relaxed text-base">
               Subjective well-being is often a strong reflection of our physical health. When viewing the BMI distribution across general health levels, it becomes clear that self-reported wellness and objective physiological weight metrics are closely connected. By sliding the mental health days input at the top, you can even explore how the accumulation of stressful or mentally poor days shifts these distributions further.
             </p>
