@@ -1096,10 +1096,6 @@ export default function App() {
                 <h3 className="text-xl font-bold text-white mb-1">3.3 Systemic Connections Map</h3>
                 <p className="text-sm text-slate-400">An asymmetric heatmap of clinical and social relationships paired with an interpretation panel.</p>
               </div>
-              <InfoPopup 
-                title="Systemic Overhaul Explained" 
-                text="Traditional heatmaps duplicate information. By removing the redundant mirror diagonal, the remaining visual space highlights key system connections."
-              />
             </div>
 
             {/* Changed to xl:grid-cols-2 and boosted the heatmap height to 600px to avoid compression */}
