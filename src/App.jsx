@@ -819,8 +819,8 @@ export default function App() {
                 </div>
                 <div className="shrink-0">
                   <ChartInfoButton 
-                    title="Relative Percentage Disparities" 
-                    text="Instead of simply comparing raw bars, we have calculated the exact Relative Difference: ((Diabetic Rate - Healthy Rate) / Healthy Rate) * 100. The scale is artificially stretched from -100 to 100 to emphasize the visual divide between the cohorts." 
+                    title="Comparisons through Butterfly Charts" 
+                    text="This bidirectional bar chart compares key physical and financial barriers between the Healthy Base (left, green) and the Diabetic Base (right, red). The negative values on the horizontal axis are purely a visual mechanism to push these bars to the left; they should be read as absolute positive percentages." 
                   />
                 </div>
               </div>
