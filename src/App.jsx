@@ -1142,10 +1142,14 @@ export default function App() {
 
           {/* ================= HEATMAP SUB-SECTION ================= */}
           <div id="heatmap" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
-            <ChartInfoButton 
-              title="Pearson Correlation Matrix" 
-              text="This matrix calculates Pearson correlation coefficients (r) between -1.0 and 1.0. We removed the mirrored upper diagonal to reduce visual noise. Deep blue indicates a strong positive link, while deep red indicates a strong inverse link." 
-            />
+            {/* Positioned in the upper right */}
+            <div className="absolute top-6 right-6 z-10">
+              <ChartInfoButton 
+                title="Pearson Correlation Matrix" 
+                text="This matrix calculates Pearson correlation coefficients (r) between -1.0 and 1.0. We removed the mirrored upper diagonal to reduce visual noise. Deep blue indicates a strong positive link, while deep red indicates a strong inverse link." 
+              />
+            </div>
+            
             <div className="mb-6 pr-12 lg:pr-32">
               <h3 className="text-xl font-bold text-white mb-1">Systemic Connections Map</h3>
               <p className="text-sm text-slate-400">An asymmetric heatmap of clinical and social relationships.</p>
