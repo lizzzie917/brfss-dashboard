@@ -1018,7 +1018,7 @@ export default function App() {
               </div>
             </div>
 
-            <TakeawayBanner text="Diabetes acts as a massive metabolic gateway. Over 75% of diabetic individuals also battle chronic high blood pressure, tightly linking endocrine disease to cardiovascular failure." />
+            <KeyInsightBanner text="Diabetes acts as a massive metabolic gateway. Over 75% of diabetic individuals also battle chronic high blood pressure, tightly linking endocrine disease to cardiovascular failure." />
           </div>
 
           {/* Sankey Deep Dive Description */}
@@ -1172,7 +1172,7 @@ export default function App() {
               </div>
             </div>
 
-            <TakeawayBanner text="Objective physical measurements closely mirror subjective feelings. As the mass of the 'violin' bulges into obese BMI territories, patients consistently rate their general health as progressively worse." />
+            <KeyInsightBanner text="Objective physical measurements closely mirror subjective feelings. As the mass of the 'violin' bulges into obese BMI territories, patients consistently rate their general health as progressively worse." />
           </div>
 
           {/* Violin Deep Dive Description */}
@@ -1287,7 +1287,7 @@ export default function App() {
               </div>
             </div>
 
-            <TakeawayBanner text="Notice the deep red negative correlation (-0.37) between General Health and Annual Income. Health is deeply bound up with economic security; as resources decrease, subjective health ratings plummet." />
+            <KeyInsightBanner text="Notice the deep red negative correlation (-0.37) between General Health and Annual Income. Health is deeply bound up with economic security; as resources decrease, subjective health ratings plummet." />
           </div>
 
           {/* Heatmap Deep Dive Description */}
