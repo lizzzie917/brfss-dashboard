@@ -424,9 +424,6 @@ export default function App() {
               style={{ width: barWidth }}
             />
           </div>
-          <span className={`text-xs font-bold font-mono w-14 text-right transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-600'}`}>
-            {isActive ? `${orVal.toFixed(2)}x` : '1.00x'}
-          </span>
         </div>
       </div>
     );
