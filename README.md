@@ -2,7 +2,7 @@
 
 An interactive, optimized React single-page data architecture designed to parse, compute, and visualize 70,000 health records from the CDC's Behavioral Risk Factor Surveillance System (BRFSS). The platform serves as a multi-audience data storytelling experience that transitions seamlessly from micro-level personal risks to macro-level systemic health inequities.
 
-Live Site: [Insert your Vercel Link Here]
+Live Site: https://brfss-dashboard.vercel.app/
 
 ---
 
