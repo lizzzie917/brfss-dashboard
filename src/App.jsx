@@ -555,6 +555,7 @@ export default function App() {
                   <h3 className="text-xl font-bold text-white">1.1 Interactive Risk Multiplier</h3>
                   <p className="text-sm text-slate-400">
                     Select physiological indicators to observe compounded risk. (Note: Multipliers treat each condition independently and do not account for baseline demographic factors like age. Cumulative estimates do not adjust for overlapping risks and should be viewed with caution.)
+                  </p>
                 </div>
                 <div className="shrink-0 self-start sm:self-auto">
                   <ChartInfoButton 
