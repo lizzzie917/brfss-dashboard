@@ -757,7 +757,7 @@ export default function App() {
               "A steep gradient persists across household income classes: the poorest earners exhibit more than double the diabetes rate of those in upper-income classes."
               : "Educational achievement functions as a protective socioeconomic proxy: those completing graduate studies show half the diabetic rates of those who did not complete high school."} 
             />
-          </div> {/* <-- Closes #slopes container */}
+          </div>
 
           {/* Part 2a Descriptor */}
           <div className="space-y-4 max-w-4xl">
@@ -871,7 +871,7 @@ export default function App() {
               "While regular dietary intake of fruits and vegetables shows only small declines, physical activity levels reveal a severe drop-off among diabetic populations."
               : "Structural health disparities are alarming: patients with diabetes report experiencing difficulty walking and avoiding medical care due to costs far more frequently."} 
             />
-          </div> {/* <-- Closes #butterfly container */}
+          </div>
 
           {/* Part 2b Descriptor */}
           <div className="space-y-4 max-w-4xl">
@@ -1260,8 +1260,7 @@ export default function App() {
             </div>
 
           </section>
-
-          {/* ================= SIMPLIFIED FINAL SUMMARY ================= */}
+          {/* Final Summary */}
           <div className="mt-12 p-8 bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-850 rounded-2xl shadow-xl">
             <h3 className="text-lg font-bold text-white mb-2">The Big Picture</h3>
             <p className="text-slate-300 leading-relaxed text-sm md:text-base">
