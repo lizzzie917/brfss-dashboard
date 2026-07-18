@@ -554,8 +554,7 @@ export default function App() {
                 <div className="space-y-1">
                   <h3 className="text-xl font-bold text-white">1.1 Interactive Risk Multiplier</h3>
                   <p className="text-sm text-slate-400">
-                    Select physiological indicators to observe how metabolic risk parameters compound against standard population baselines.
-                  </p>
+                    Select physiological indicators to observe compounded risk. (Note: Multipliers treat each condition independently and do not account for baseline demographic factors like age. Cumulative estimates do not adjust for overlapping risks and should be viewed with caution.)
                 </div>
                 <div className="shrink-0 self-start sm:self-auto">
                   <ChartInfoButton 
@@ -1044,7 +1043,7 @@ export default function App() {
               <div className="space-y-1">
                 <h4 className="text-lg font-bold text-white mb-1">3.2 Continuous BMI Distributions vs. Self-Reported General Health</h4>
                 <p className="text-xs text-slate-400">
-                  Observe the full density of weights across general health levels (1 = Excellent, 5 = Poor).
+                  Observe the full density of weights across general health levels (1 = Excellent, 5 = Poor). Use the slider to filter the population by their minimum days of psychological distress in the past month.
                 </p>
               </div>
               
@@ -1144,7 +1143,7 @@ export default function App() {
             )}
           </div>
 
-          {/* ================= HEATMAP SUB-SECTION ================= */}
+          {/* Correlation Heatmap */}
           <div id="heatmap" className="relative bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl w-full scroll-mt-24">
             {/* Positioned in the upper right */}
             <div className="absolute top-6 right-6 z-10">
