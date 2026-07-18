@@ -1236,7 +1236,7 @@ export default function App() {
           {/* Heatmap Deep Dive Description */}
           <div className="space-y-4 max-w-4xl">
             <p className="text-slate-300 leading-relaxed text-base">
-              Biological markers, socioeconomic backgrounds, and daily behaviors are all part of an interconnected system. This asymmetric heatmap simplifies these mathematical relationships, removing duplicate values to highlight key systemic correlations. Blue squares represent positive correlations, while red squares show negative links. Use the legend below the chart to interpret the intensity of the colors. Select any pair of variables in the Correlation Translator dropdown to view a real-world translation of how they interact.
+              Biological markers, socioeconomic backgrounds, and daily behaviors are all part of an interconnected system. This asymmetric heatmap simplifies these mathematical relationships, removing duplicate values to highlight key systemic correlations. Blue squares represent positive correlations, while red squares show negative links. Use the legend below the chart to interpret the intensity of the colors. Select a key pair of variables in the Correlation Translator dropdown to view a real-world translation of how they interact.
             </p>
             <div>
               <button 
