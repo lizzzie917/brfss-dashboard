@@ -57,3 +57,26 @@ Follow these steps to run the dataset and dashboard locally on your hard drive:
 ```bash
 git clone [https://github.com/lizzzie917/brfss-dashboard.git](https://github.com/lizzzie917/brfss-dashboard.git)
 cd brfss-dashboard
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+
+```
+
+### 3. Verify Dataset Placement
+
+Ensure that your raw data file `diabetes_binary_5050split_health_indicators_BRFSS2015.csv` is saved directly inside your local project's **`public/`** folder. The application fetches the source file directly from this public asset route.
+
+### 4. Boot the development server
+
+```bash
+npm run dev
+
+```
+
+Open your browser to the local URL displayed in your terminal (typically `http://localhost:5173`) to view the application.
+
+```
