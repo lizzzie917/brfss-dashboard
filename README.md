@@ -78,5 +78,3 @@ npm run dev
 ```
 
 Open your browser to the local URL displayed in your terminal (typically `http://localhost:5173`) to view the application.
-
-```
