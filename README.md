@@ -55,7 +55,7 @@ Follow these steps to run the dataset and dashboard locally on your hard drive:
 
 ### 1. Clone the repository
 ```bash
-git clone [https://github.com/lizzzie917/brfss-dashboard.git](https://github.com/lizzzie917/brfss-dashboard.git)
+git clone https://github.com/lizzzie917/brfss-dashboard.git
 cd brfss-dashboard
 ```
 

@@ -488,7 +488,7 @@ export default function App() {
       {/* HEADER NARRATIVE */}
       <header className="max-w-4xl mx-auto pt-14 pb-12 px-6 text-center">
         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
-          Mapping Diabetes Risk & <br /> Systemic Barriers
+          Analyzing Metabolic Risk and Systemic Barriers in Diabetes
         </h1>
         
         <div className="mt-8 text-left text-sm max-w-2xl mx-auto">
